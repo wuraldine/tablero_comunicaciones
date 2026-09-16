@@ -97,6 +97,9 @@
     .close-login:hover { color: var(--navy); }
     [hidden] { display: none !important; }
     .history { margin-top: 22px; }
+    .history-filter { display: flex; align-items: center; gap: 8px; }
+    .history-filter label { display: inline-flex; align-items: center; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
+    .history-filter select { width: auto; min-width: 210px; padding: 7px 9px; font: 12px Arial, sans-serif; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; min-width: 620px; }
     th { padding: 12px 20px; text-align: left; color: var(--muted); background: #f7f9fc; font: 10px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
@@ -158,7 +161,7 @@
           <form class="entry-form" id="entryForm" hidden>
             <div class="form-grid">
               <label>Fecha<input id="date" name="date" type="date" required></label>
-              <label>Equipo / turno<input id="team" name="team" type="text" placeholder="Ej. Equipo A · Turno mañana" required></label>
+              <label>Equipo / grupo<input id="team" name="team" type="text" placeholder="Ej. Grupo de cosecha de Nay" required></label>
               <label>Responsable<input id="owner" name="owner" type="text" placeholder="Nombre del referente" required></label>
               <label>Seguridad<select id="safety" name="safety"><option value="0 incidentes">0 incidentes</option><option value="1 incidente">1 incidente</option><option value="2+ incidentes">2+ incidentes</option></select></label>
               <label>Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
@@ -176,7 +179,7 @@
       </div>
 
       <section class="panel history" aria-labelledby="history-title">
-        <div class="panel-head"><h3 id="history-title">Historial de comunicaciones</h3><span id="recordCount">0 registros</span></div>
+        <div class="panel-head"><h3 id="history-title">Historial de comunicaciones</h3><div class="history-filter"><label for="weekFilter">Semana</label><select id="weekFilter" aria-label="Filtrar historial por semana"></select><span id="recordCount">0 registros</span></div></div>
         <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Equipo</th><th>Referente</th><th>Rendimiento</th><th>Calidad</th><th>Estado</th><th>Gestión</th></tr></thead><tbody id="historyBody"><tr><td class="empty" colspan="7">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr></tbody></table></div>
       </section>
     </main>
@@ -198,6 +201,7 @@
     const dateInput = document.getElementById('date');
     const dateFilter = document.getElementById('dateFilter');
     const clearDateFilter = document.getElementById('clearDateFilter');
+    const weekFilter = document.getElementById('weekFilter');
     const today = new Date();
     const formatDate = (value) => { const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsedDate); };
     dateInput.value = today.toISOString().slice(0, 10);
@@ -247,12 +251,16 @@
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
     const percentNumber = (value) => { const number = numeric(value); return Number.isFinite(number) ? (number > 0 && number <= 1 ? number * 100 : number) : NaN; };
     const percentage = (value) => { const number = percentNumber(value); return Number.isFinite(number) ? `${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(number)}%` : '—'; };
+    const weekInfo = (value) => { const date = new Date(`${value}T12:00:00`); const start = new Date(date); start.setDate(date.getDate() - date.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); const firstSunday = new Date(start.getFullYear(), 0, 1); firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay()); const number = Math.floor((start - firstSunday) / 604800000) + 1; const key = `${start.getFullYear()}-${String(number).padStart(2, '0')}`; return { key, number, start, end }; };
+    const weekLabel = ({ number, start, end }) => `Semana ${number} · ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short' }).format(start)} - ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end)}`;
+    const populateWeekFilter = (records) => { const weeks = new Map(); records.forEach((record) => { if (record.date) { const info = weekInfo(record.date); weeks.set(info.key, info); } }); const current = weekInfo(today.toISOString().slice(0, 10)); weeks.set(current.key, current); const selected = weekFilter.value || current.key; weekFilter.innerHTML = [...weeks.values()].sort((a, b) => b.start - a.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join(''); weekFilter.value = weeks.has(selected) ? selected : current.key; };
     const statusFor = (record) => {
       const values = [percentNumber(record.attendance) >= 95, percentNumber(record.base) >= 90, numeric(record.performance) >= 100, percentNumber(record.quality) >= 98, record.safety === '0 incidentes'];
       return values.filter(Boolean).length >= 4 ? ['En objetivo', 'status-ok'] : values.filter(Boolean).length >= 2 ? ['Revisar', 'status-warn'] : ['Atención', 'status-risk'];
     };
     const render = (records = getRecords()) => {
-      const visibleRecords = dateFilter.value ? records.filter((record) => record.date === dateFilter.value) : records;
+      populateWeekFilter(records);
+      const visibleRecords = records.filter((record) => (!weekFilter.value || weekInfo(record.date).key === weekFilter.value) && (!dateFilter.value || record.date === dateFilter.value));
       document.getElementById('todayLabel').textContent = dateFilter.value ? dateLabel.format(new Date(`${dateFilter.value}T12:00:00`)) : 'Todas las jornadas';
       records = visibleRecords;
       records = records.sort((a, b) => b.date.localeCompare(a.date));
@@ -273,6 +281,7 @@
     const resetEdit = () => { editingId = ''; form.reset(); dateInput.value = today.toISOString().slice(0, 10); document.getElementById('submitRecordButton').textContent = 'Publicar registro'; document.getElementById('cancelEditButton').hidden = true; document.getElementById('formHint').textContent = 'Solo tu sesión puede publicar registros.'; };
     const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
     dateFilter.addEventListener('change', () => loadRecords().then(render));
+    weekFilter.addEventListener('change', () => loadRecords().then(render));
     clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
     const openLogin = (event) => { event.preventDefault(); if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
     loginTrigger.addEventListener('click', openLogin);
