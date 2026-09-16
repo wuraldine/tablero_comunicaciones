@@ -67,6 +67,7 @@
     .entry-form { padding: 20px; }
     .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
     label { color: var(--muted); display: grid; gap: 7px; font: 11px Arial, sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .field-hint { color: var(--muted); font: 10px Arial, sans-serif; font-weight: 400; letter-spacing: 0; text-transform: none; }
     input, select, textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 0; outline: none; color: var(--ink); background: #fbfcfe; font: 15px Georgia, serif; }
     input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22,119,255,.12); }
     textarea { min-height: 75px; resize: vertical; }
@@ -129,7 +130,7 @@
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 incidentes</div></article>
           <article class="metric metric-attendance"><div class="metric-label">Presentismo <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Objetivo: ≥ 97%</div></article>
           <article class="metric metric-base"><div class="metric-label">Base estable <span class="metric-icon">▣</span></div><div class="metric-value" id="metricBase">—</div><div class="metric-target">Objetivo: ≥ 100%</div></article>
-          <article class="metric metric-performance"><div class="metric-label">Rendimiento <span class="metric-icon">↗</span></div><div class="metric-value" id="metricPerformance">—</div><div class="metric-target">Objetivo: ≥ 1600</div></article>
+          <article class="metric metric-performance"><div class="metric-label">Rendimiento <span class="metric-icon">↗</span></div><div class="metric-value" id="metricPerformance">—</div><div class="metric-target">Objetivo: ≥ 100%</div></article>
           <article class="metric metric-quality"><div class="metric-label">Calidad <span class="metric-icon">◇</span></div><div class="metric-value" id="metricQuality">—</div><div class="metric-target">Objetivo: ≥ 92%</div></article>
           <article class="metric metric-cost"><div class="metric-label">Costos <span class="metric-icon">$</span></div><div class="metric-value" id="metricCost">—</div><div class="metric-target">Objetivo: MCI 100%</div></article>
         </div>
@@ -149,10 +150,10 @@
               <label>Equipo / turno<input id="team" name="team" type="text" placeholder="Ej. Equipo A · Turno mañana" required></label>
               <label>Responsable<input id="owner" name="owner" type="text" placeholder="Nombre del referente" required></label>
               <label>Seguridad<select id="safety" name="safety"><option value="0 incidentes">0 incidentes</option><option value="1 incidente">1 incidente</option><option value="2+ incidentes">2+ incidentes</option></select></label>
-              <label>Presentismo<input id="attendance" name="attendance" type="text" placeholder="Ej. 97%" required></label>
-              <label>Base estable<input id="base" name="base" type="text" placeholder="Ej. 92%" required></label>
-              <label>Rendimiento<input id="performance" name="performance" type="text" placeholder="Ej. 104%" required></label>
-              <label>Calidad<input id="quality" name="quality" type="text" placeholder="Ej. 99%" required></label>
+              <label>Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
+              <label>Base estable<input id="base" name="base" type="number" min="0" max="100" step="0.01" placeholder="Ej. 92" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
+              <label>Rendimiento<input id="performance" name="performance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 104" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
+              <label>Calidad<input id="quality" name="quality" type="number" min="0" max="100" step="0.01" placeholder="Ej. 99" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label>Costos<input id="cost" name="cost" type="text" placeholder="Ej. En presupuesto" required></label>
               <label class="full">Frase motivadora<textarea id="motivation" name="motivation" placeholder="Ej. Juntos hacemos que cada jornada cuente." required></textarea></label>
               <label class="full">Hallazgo / mensaje del día<textarea id="message" name="message" placeholder="¿Qué necesitamos conversar con el grupo?"></textarea></label>
@@ -193,7 +194,7 @@
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
     const dateInput = document.getElementById('date');
     const today = new Date();
-    const formatDate = (value) => new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
+    const formatDate = (value) => { const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsedDate); };
     dateInput.value = today.toISOString().slice(0, 10);
     document.getElementById('todayLabel').textContent = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(today);
 
@@ -230,6 +231,7 @@
       if (!result.ok) throw new Error(result.message || 'No se pudo publicar el registro.');
     };
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
+    const percentage = (value) => { const number = numeric(value); return Number.isFinite(number) ? `${number}%` : '—'; };
     const statusFor = (record) => {
       const values = [numeric(record.attendance) >= 95, numeric(record.base) >= 90, numeric(record.performance) >= 100, numeric(record.quality) >= 98, record.safety === '0 incidentes'];
       return values.filter(Boolean).length >= 4 ? ['En objetivo', 'status-ok'] : values.filter(Boolean).length >= 2 ? ['Revisar', 'status-warn'] : ['Atención', 'status-risk'];
@@ -237,10 +239,15 @@
     const render = (records = getRecords()) => {
       records = records.sort((a, b) => b.date.localeCompare(a.date));
       const latest = records[0];
-      ['Safety', 'Attendance', 'Base', 'Performance', 'Quality', 'Cost'].forEach((name) => { document.getElementById(`metric${name}`).textContent = latest ? latest[name.toLowerCase()] || latest[name === 'Safety' ? 'safety' : name.toLowerCase()] : '—'; });
+      document.getElementById('metricSafety').textContent = latest?.safety || '—';
+      document.getElementById('metricAttendance').textContent = latest ? percentage(latest.attendance) : '—';
+      document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
+      document.getElementById('metricPerformance').textContent = latest ? percentage(latest.performance) : '—';
+      document.getElementById('metricQuality').textContent = latest ? percentage(latest.quality) : '—';
+      document.getElementById('metricCost').textContent = latest?.cost || '—';
       document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
       document.getElementById('recordCount').textContent = `${records.length} ${records.length === 1 ? 'registro' : 'registros'}`;
-      document.getElementById('historyBody').innerHTML = records.length ? records.map((record) => { const [label, className] = statusFor(record); return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${record.performance}</td><td>${record.quality}</td><td><span class="status ${className}">${label}</span></td></tr>`; }).join('') : '<tr><td class="empty" colspan="6">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr>';
+      document.getElementById('historyBody').innerHTML = records.length ? records.map((record) => { const [label, className] = statusFor(record); return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${percentage(record.performance)}</td><td>${percentage(record.quality)}</td><td><span class="status ${className}">${label}</span></td></tr>`; }).join('') : '<tr><td class="empty" colspan="6">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr>';
     };
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionStorage.setItem(sessionKey, sessionToken); loginForm.reset(); setEditorState(true); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionStorage.removeItem(sessionKey); setEditorState(false); });
