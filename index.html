@@ -42,6 +42,9 @@
     .date-box { padding: 12px 16px; border: 1px solid var(--line); background: var(--white); min-width: 200px; }
     .date-box span { display: block; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
     .date-box strong { display: block; margin-top: 4px; color: var(--navy); font: 15px Arial, sans-serif; }
+    .date-filter { margin-top: 8px; }
+    .date-filter input { padding: 7px 8px; font-size: 13px; }
+    .clear-filter { cursor: pointer; margin-top: 7px; padding: 0; border: 0; color: var(--blue); background: transparent; font: 11px Arial, sans-serif; }
     .top-action { display: inline-block; margin-top: 14px; padding: 10px 14px; color: #fff; background: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
     .top-action:hover { background: #1d4b70; }
     .section-heading { display: flex; justify-content: space-between; align-items: baseline; margin: 28px 0 13px; }
@@ -131,7 +134,7 @@
     <main>
       <header class="topline" id="resumen">
         <div><div class="eyebrow">Grupo de cosecha de Naybelin Varela </div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión para cargar</a></div>
-        <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel"></strong></div>
+        <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Todas las jornadas</strong><label class="date-filter"><span>Filtrar por fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div>
       </header>
 
       <section aria-labelledby="metrics-title">
@@ -206,10 +209,12 @@
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
     let editingId = '';
     const dateInput = document.getElementById('date');
+    const dateFilter = document.getElementById('dateFilter');
+    const clearDateFilter = document.getElementById('clearDateFilter');
     const today = new Date();
     const formatDate = (value) => { const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsedDate); };
     dateInput.value = today.toISOString().slice(0, 10);
-    document.getElementById('todayLabel').textContent = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(today);
+    const dateLabel = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     const getRecords = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
     const setRecords = (records) => localStorage.setItem(storageKey, JSON.stringify(records));
@@ -260,6 +265,9 @@
       return values.filter(Boolean).length >= 4 ? ['En objetivo', 'status-ok'] : values.filter(Boolean).length >= 2 ? ['Revisar', 'status-warn'] : ['Atención', 'status-risk'];
     };
     const render = (records = getRecords()) => {
+      const visibleRecords = dateFilter.value ? records.filter((record) => record.date === dateFilter.value) : records;
+      document.getElementById('todayLabel').textContent = dateFilter.value ? dateLabel.format(new Date(`${dateFilter.value}T12:00:00`)) : 'Todas las jornadas';
+      records = visibleRecords;
       records = records.sort((a, b) => b.date.localeCompare(a.date));
       const latest = records[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
@@ -277,6 +285,8 @@
     const startEdit = (id, records = getRecords()) => { const record = records.find((item) => item.id === id); if (!record) return; editingId = id; Object.entries(record).forEach(([key, value]) => { const field = document.getElementById(key); if (field) field.value = value; }); document.getElementById('submitRecordButton').textContent = 'Guardar cambios'; document.getElementById('cancelEditButton').hidden = false; document.getElementById('formHint').textContent = 'Editando el registro seleccionado.'; form.scrollIntoView({ behavior: 'smooth' }); };
     const resetEdit = () => { editingId = ''; form.reset(); dateInput.value = today.toISOString().slice(0, 10); document.getElementById('submitRecordButton').textContent = 'Publicar registro'; document.getElementById('cancelEditButton').hidden = true; document.getElementById('formHint').textContent = 'Solo tu sesión puede publicar registros.'; };
     const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
+    dateFilter.addEventListener('change', () => loadRecords().then(render));
+    clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
     const openLogin = (event) => { event.preventDefault(); if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
     loginTrigger.addEventListener('click', openLogin);
     closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
