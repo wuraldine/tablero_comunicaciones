@@ -119,7 +119,7 @@
 
     <main>
       <header class="topline" id="resumen">
-        <div><div class="eyebrow">Grupo de cosecha de Nay </div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p><a class="top-action" href="#carga">Iniciar sesión para cargar</a></div>
+        <div><div class="eyebrow">Grupo de cosecha de Naybelin Varela </div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p><a class="top-action" href="#carga">Iniciar sesión para cargar</a></div>
         <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel"></strong></div>
       </header>
 
@@ -203,7 +203,7 @@
       const connected = Boolean(apiUrl);
       adminGate.hidden = isAuthenticated;
       form.hidden = !isAuthenticated;
-      loginForm.hidden = connected;
+      loginForm.hidden = !connected || isAuthenticated;
       if (!connected) loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.';
       document.getElementById('accessLabel').textContent = isAuthenticated ? 'Sesión activa' : 'Acceso privado';
     };
