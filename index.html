@@ -198,8 +198,11 @@
     const getRecords = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
     const setRecords = (records) => localStorage.setItem(storageKey, JSON.stringify(records));
     const setEditorState = (isAuthenticated) => {
-      adminGate.hidden = isAuthenticated || !apiUrl;
-      form.hidden = !isAuthenticated && Boolean(apiUrl);
+      const connected = Boolean(apiUrl);
+      adminGate.hidden = isAuthenticated;
+      form.hidden = !isAuthenticated;
+      loginForm.hidden = connected;
+      if (!connected) loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.';
       document.getElementById('accessLabel').textContent = isAuthenticated ? 'Sesión activa' : 'Acceso privado';
     };
     const postToApi = async (payload) => {
@@ -218,12 +221,11 @@
       }
     };
     const saveRecord = async (record) => {
+      if (!apiUrl || !sessionToken) throw new Error('El formulario no está conectado o la sesión expiró.');
       const records = [record, ...getRecords()];
       setRecords(records);
-      if (apiUrl) {
-        const result = await postToApi({ action: 'save', token: sessionToken, record });
-        if (!result.ok) throw new Error(result.message || 'No se pudo publicar el registro.');
-      }
+      const result = await postToApi({ action: 'save', token: sessionToken, record });
+      if (!result.ok) throw new Error(result.message || 'No se pudo publicar el registro.');
     };
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
     const statusFor = (record) => {
@@ -241,7 +243,7 @@
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionStorage.setItem(sessionKey, sessionToken); loginForm.reset(); setEditorState(true); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionStorage.removeItem(sessionKey); setEditorState(false); });
     form.addEventListener('submit', async (event) => { event.preventDefault(); const button = form.querySelector('button[type="submit"]'); const record = Object.fromEntries(new FormData(form).entries()); button.disabled = true; button.textContent = 'Publicando...'; try { await saveRecord(record); form.reset(); dateInput.value = today.toISOString().slice(0, 10); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; button.textContent = 'Publicar registro'; } });
-    setEditorState(Boolean(sessionToken) || !apiUrl);
+    setEditorState(Boolean(sessionToken) && Boolean(apiUrl));
     loadRecords().then(render);
   </script>
 </body>
