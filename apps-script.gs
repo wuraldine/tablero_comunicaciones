@@ -1,5 +1,6 @@
 const SHEET_NAME = 'Registros';
 const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message'];
+const SESSION_TTL_SECONDS = 21600;
 
 function getSheet() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -18,9 +19,26 @@ function doGet(event) {
 }
 
 function doPost(event) {
-  const record = JSON.parse(event.postData.contents);
+  const payload = JSON.parse(event.postData.contents);
+  if (payload.action === 'login') return login(payload);
+  if (payload.action !== 'save' || !isValidSession(payload.token)) return json({ ok: false, message: 'Sesión no autorizada.' });
+  const record = payload.record;
   getSheet().appendRow(HEADERS.map((header) => record[header] || ''));
   return json({ ok: true });
+}
+
+function login(payload) {
+  const properties = PropertiesService.getScriptProperties();
+  const username = properties.getProperty('ADMIN_USERNAME');
+  const password = properties.getProperty('ADMIN_PASSWORD');
+  if (!username || !password || payload.username !== username || payload.password !== password) return json({ ok: false, message: 'Usuario o contraseña incorrectos.' });
+  const token = Utilities.getUuid();
+  CacheService.getScriptCache().put(`session_${token}`, username, SESSION_TTL_SECONDS);
+  return json({ ok: true, token });
+}
+
+function isValidSession(token) {
+  return Boolean(token && CacheService.getScriptCache().get(`session_${token}`));
 }
 
 function json(value) {
