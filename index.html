@@ -78,6 +78,9 @@
     .primary:hover { background: #1d4b70; }
     .secondary { cursor: pointer; border: 1px solid var(--line); padding: 11px 14px; color: var(--muted); background: var(--white); font: 700 11px Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
     .secondary:hover { color: var(--navy); border-color: var(--navy); }
+    .row-actions { display: flex; gap: 6px; }
+    .row-action { cursor: pointer; border: 1px solid var(--line); padding: 6px 8px; color: var(--navy); background: var(--white); font: 700 10px Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+    .row-action:hover { border-color: var(--blue); color: var(--blue); }
     .login { padding: 20px; background: #f8fafc; border-bottom: 1px solid var(--line); }
     .login-copy { margin: 0 0 15px; color: var(--muted); font-size: 14px; }
     .login-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
@@ -130,7 +133,7 @@
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 incidentes</div></article>
           <article class="metric metric-attendance"><div class="metric-label">Presentismo <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Objetivo: ≥ 97%</div></article>
           <article class="metric metric-base"><div class="metric-label">Base estable <span class="metric-icon">▣</span></div><div class="metric-value" id="metricBase">—</div><div class="metric-target">Objetivo: ≥ 100%</div></article>
-          <article class="metric metric-performance"><div class="metric-label">Rendimiento <span class="metric-icon">↗</span></div><div class="metric-value" id="metricPerformance">—</div><div class="metric-target">Objetivo: ≥ 100%</div></article>
+          <article class="metric metric-performance"><div class="metric-label">Rendimiento <span class="metric-icon">↗</span></div><div class="metric-value" id="metricPerformance">—</div><div class="metric-target">Objetivo: ≥ 1600</div></article>
           <article class="metric metric-quality"><div class="metric-label">Calidad <span class="metric-icon">◇</span></div><div class="metric-value" id="metricQuality">—</div><div class="metric-target">Objetivo: ≥ 92%</div></article>
           <article class="metric metric-cost"><div class="metric-label">Costos <span class="metric-icon">$</span></div><div class="metric-value" id="metricCost">—</div><div class="metric-target">Objetivo: MCI 100%</div></article>
         </div>
@@ -152,13 +155,13 @@
               <label>Seguridad<select id="safety" name="safety"><option value="0 incidentes">0 incidentes</option><option value="1 incidente">1 incidente</option><option value="2+ incidentes">2+ incidentes</option></select></label>
               <label>Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label>Base estable<input id="base" name="base" type="number" min="0" max="100" step="0.01" placeholder="Ej. 92" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
-              <label>Rendimiento<input id="performance" name="performance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 104" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
+              <label>Rendimiento<input id="performance" name="performance" type="number" min="0" step="0.01" placeholder="Ej. 1600" required><span class="field-hint">Ingresá solo el número.</span></label>
               <label>Calidad<input id="quality" name="quality" type="number" min="0" max="100" step="0.01" placeholder="Ej. 99" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
-              <label>Costos<input id="cost" name="cost" type="text" placeholder="Ej. En presupuesto" required></label>
+              <label>Costos<input id="cost" name="cost" type="number" min="0" max="100" step="0.01" placeholder="Ej. 100" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label class="full">Frase motivadora<textarea id="motivation" name="motivation" placeholder="Ej. Juntos hacemos que cada jornada cuente." required></textarea></label>
               <label class="full">Hallazgo / mensaje del día<textarea id="message" name="message" placeholder="¿Qué necesitamos conversar con el grupo?"></textarea></label>
             </div>
-            <div class="form-actions"><span class="hint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" type="submit">Publicar registro</button></div></div>
+            <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
           </form>
         </section>
 
@@ -177,7 +180,7 @@
 
       <section class="panel history" aria-labelledby="history-title">
         <div class="panel-head"><h3 id="history-title">Historial de comunicaciones</h3><span id="recordCount">0 registros</span></div>
-        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Equipo</th><th>Referente</th><th>Rendimiento</th><th>Calidad</th><th>Estado</th></tr></thead><tbody id="historyBody"><tr><td class="empty" colspan="6">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Equipo</th><th>Referente</th><th>Rendimiento</th><th>Calidad</th><th>Estado</th><th>Gestión</th></tr></thead><tbody id="historyBody"><tr><td class="empty" colspan="7">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr></tbody></table></div>
       </section>
     </main>
   </div>
@@ -192,6 +195,7 @@
     const logoutButton = document.getElementById('logoutButton');
     const sessionKey = 'tablero-comunicaciones-session';
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
+    let editingId = '';
     const dateInput = document.getElementById('date');
     const today = new Date();
     const formatDate = (value) => { const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsedDate); };
@@ -225,10 +229,19 @@
     };
     const saveRecord = async (record) => {
       if (!apiUrl || !sessionToken) throw new Error('El formulario no está conectado o la sesión expiró.');
-      const records = [record, ...getRecords()];
-      setRecords(records);
       const result = await postToApi({ action: 'save', token: sessionToken, record });
       if (!result.ok) throw new Error(result.message || 'No se pudo publicar el registro.');
+      setRecords([{ id: result.id, ...record }, ...getRecords()]);
+    };
+    const updateRecord = async (id, record) => {
+      const result = await postToApi({ action: 'update', token: sessionToken, id, record });
+      if (!result.ok) throw new Error(result.message || 'No se pudo modificar el registro.');
+      setRecords(getRecords().map((item) => item.id === id ? { id, ...record } : item));
+    };
+    const deleteRecord = async (id) => {
+      const result = await postToApi({ action: 'delete', token: sessionToken, id });
+      if (!result.ok) throw new Error(result.message || 'No se pudo borrar el registro.');
+      setRecords(getRecords().filter((item) => item.id !== id));
     };
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
     const percentage = (value) => { const number = numeric(value); return Number.isFinite(number) ? `${number}%` : '—'; };
@@ -242,16 +255,22 @@
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
       document.getElementById('metricAttendance').textContent = latest ? percentage(latest.attendance) : '—';
       document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
-      document.getElementById('metricPerformance').textContent = latest ? percentage(latest.performance) : '—';
+      document.getElementById('metricPerformance').textContent = latest?.performance || '—';
       document.getElementById('metricQuality').textContent = latest ? percentage(latest.quality) : '—';
-      document.getElementById('metricCost').textContent = latest?.cost || '—';
+      document.getElementById('metricCost').textContent = latest ? percentage(latest.cost) : '—';
       document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
       document.getElementById('recordCount').textContent = `${records.length} ${records.length === 1 ? 'registro' : 'registros'}`;
-      document.getElementById('historyBody').innerHTML = records.length ? records.map((record) => { const [label, className] = statusFor(record); return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${percentage(record.performance)}</td><td>${percentage(record.quality)}</td><td><span class="status ${className}">${label}</span></td></tr>`; }).join('') : '<tr><td class="empty" colspan="6">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr>';
+      document.getElementById('historyBody').innerHTML = records.length ? records.map((record) => { const [label, className] = statusFor(record); const actions = sessionToken ? `<div class="row-actions"><button class="row-action" type="button" data-edit="${record.id}">Editar</button><button class="row-action" type="button" data-delete="${record.id}">Borrar</button></div>` : '—'; return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${record.performance || '—'}</td><td>${percentage(record.quality)}</td><td><span class="status ${className}">${label}</span></td><td>${actions}</td></tr>`; }).join('') : '<tr><td class="empty" colspan="7">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr>';
+      document.querySelectorAll('[data-edit]').forEach((button) => button.addEventListener('click', () => startEdit(button.dataset.edit, records)));
+      document.querySelectorAll('[data-delete]').forEach((button) => button.addEventListener('click', () => removeRecord(button.dataset.delete)));
     };
+    const startEdit = (id, records = getRecords()) => { const record = records.find((item) => item.id === id); if (!record) return; editingId = id; Object.entries(record).forEach(([key, value]) => { const field = document.getElementById(key); if (field) field.value = value; }); document.getElementById('submitRecordButton').textContent = 'Guardar cambios'; document.getElementById('cancelEditButton').hidden = false; document.getElementById('formHint').textContent = 'Editando el registro seleccionado.'; form.scrollIntoView({ behavior: 'smooth' }); };
+    const resetEdit = () => { editingId = ''; form.reset(); dateInput.value = today.toISOString().slice(0, 10); document.getElementById('submitRecordButton').textContent = 'Publicar registro'; document.getElementById('cancelEditButton').hidden = true; document.getElementById('formHint').textContent = 'Solo tu sesión puede publicar registros.'; };
+    const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionStorage.setItem(sessionKey, sessionToken); loginForm.reset(); setEditorState(true); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionStorage.removeItem(sessionKey); setEditorState(false); });
-    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = form.querySelector('button[type="submit"]'); const record = Object.fromEntries(new FormData(form).entries()); button.disabled = true; button.textContent = 'Publicando...'; try { await saveRecord(record); form.reset(); dateInput.value = today.toISOString().slice(0, 10); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; button.textContent = 'Publicar registro'; } });
+    document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
+    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = Object.fromEntries(new FormData(form).entries()); button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
     setEditorState(Boolean(sessionToken) && Boolean(apiUrl));
     loadRecords().then(render);
   </script>

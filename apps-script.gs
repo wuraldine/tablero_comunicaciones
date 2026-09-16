@@ -14,17 +14,42 @@ function doGet(event) {
   if (event.parameter.action !== 'list') return json({ ok: true, message: 'Tablero de comunicaciones activo' });
   const sheet = getSheet();
   const rows = sheet.getDataRange().getValues();
-  const records = rows.slice(1).filter((row) => row[0]).map((row) => Object.fromEntries(HEADERS.map((header, index) => [header, String(row[index] ?? '')])));
+  const records = rows.slice(1).map((row, rowIndex) => ({ id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) })).filter((record) => record.date);
   return json(records);
+}
+
+function valueFor(header, value) {
+  if (header === 'date' && value) return Utilities.formatDate(new Date(value), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return String(value ?? '');
 }
 
 function doPost(event) {
   const payload = JSON.parse(event.postData.contents);
   if (payload.action === 'login') return login(payload);
-  if (payload.action !== 'save' || !isValidSession(payload.token)) return json({ ok: false, message: 'Sesión no autorizada.' });
-  const record = payload.record;
-  getSheet().appendRow(HEADERS.map((header) => record[header] || ''));
+  if (!isValidSession(payload.token)) return json({ ok: false, message: 'Sesión no autorizada.' });
+  const sheet = getSheet();
+  if (payload.action === 'save') {
+    sheet.appendRow(HEADERS.map((header) => payload.record[header] || ''));
+    return json({ ok: true, id: String(sheet.getLastRow()) });
+  }
+  else if (payload.action === 'update') updateRecord(sheet, payload.id, payload.record);
+  else if (payload.action === 'delete') deleteRecord(sheet, payload.id);
+  else return json({ ok: false, message: 'Acción no válida.' });
   return json({ ok: true });
+}
+
+function rowNumber(id, sheet) {
+  const row = Number(id);
+  if (!Number.isInteger(row) || row < 2 || row > sheet.getLastRow()) throw new Error('Registro no válido.');
+  return row;
+}
+
+function updateRecord(sheet, id, record) {
+  sheet.getRange(rowNumber(id, sheet), 1, 1, HEADERS.length).setValues([HEADERS.map((header) => record[header] || '')]);
+}
+
+function deleteRecord(sheet, id) {
+  sheet.deleteRow(rowNumber(id, sheet));
 }
 
 function login(payload) {
