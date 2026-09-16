@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#102a43" />
+  <title>Tablero de comunicaciones | Rendimiento diario</title>
+  <style>
+    :root {
+      --ink: #172b4d;
+      --muted: #627d98;
+      --line: #d9e2ec;
+      --paper: #f7f9fc;
+      --white: #ffffff;
+      --navy: #102a43;
+      --blue: #1677ff;
+      --teal: #00a6a6;
+      --gold: #f0a202;
+      --red: #d64545;
+      --green: #16875b;
+      --shadow: 0 16px 40px rgba(16, 42, 67, .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font-family: Georgia, 'Times New Roman', serif; }
+    button, input, select, textarea { font: inherit; }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
+    aside { color: #eaf2f8; background: var(--navy); padding: 28px 22px; display: flex; flex-direction: column; }
+    .brand { display: flex; gap: 12px; align-items: center; margin-bottom: 46px; }
+    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #5e85aa; color: #8fd9dc; font-family: Arial, sans-serif; font-weight: 800; }
+    .brand-name { font-size: 20px; line-height: 1; letter-spacing: .02em; }
+    .brand small { display: block; margin-top: 5px; color: #8daac3; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    .side-label { color: #7f9bb4; font: 10px Arial, sans-serif; letter-spacing: .15em; text-transform: uppercase; margin: 0 0 13px 10px; }
+    nav a { color: #dbe8f4; text-decoration: none; display: flex; gap: 12px; padding: 12px 10px; margin-bottom: 4px; border-left: 2px solid transparent; font-size: 16px; }
+    nav a.active, nav a:hover { color: #fff; background: rgba(255,255,255,.08); border-left-color: #54c2c5; }
+    nav .icon { width: 19px; text-align: center; font-family: Arial, sans-serif; font-size: 14px; }
+    .aside-foot { margin-top: auto; border-top: 1px solid rgba(255,255,255,.15); padding-top: 18px; color: #9db3c6; font: 12px Arial, sans-serif; line-height: 1.6; }
+    main { padding: 28px 4vw 60px; overflow: hidden; }
+    .topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 28px; }
+    .eyebrow { color: var(--teal); font: 11px Arial, sans-serif; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 6px 0 5px; font-size: clamp(32px, 4vw, 48px); font-weight: 400; letter-spacing: -.035em; line-height: 1; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 17px; }
+    .date-box { padding: 12px 16px; border: 1px solid var(--line); background: var(--white); min-width: 200px; }
+    .date-box span { display: block; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
+    .date-box strong { display: block; margin-top: 4px; color: var(--navy); font: 15px Arial, sans-serif; }
+    .section-heading { display: flex; justify-content: space-between; align-items: baseline; margin: 28px 0 13px; }
+    h2 { margin: 0; font-size: 21px; font-weight: 400; }
+    .section-note { color: var(--muted); font: 12px Arial, sans-serif; }
+    .motivation { margin-top: 18px; padding: 21px 24px; color: #fff; background: var(--teal); display: flex; align-items: center; gap: 18px; box-shadow: var(--shadow); }
+    .motivation-mark { font-size: 28px; line-height: 1; color: #b8ffff; }
+    .motivation-label { margin-bottom: 5px; color: #b8ffff; font: 10px Arial, sans-serif; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+    .motivation-text { margin: 0; font-size: 20px; line-height: 1.25; }
+    .metrics { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 10px; }
+    .metric { min-height: 142px; padding: 16px; background: var(--white); border: 1px solid var(--line); box-shadow: var(--shadow); position: relative; overflow: hidden; }
+    .metric::before { content: ''; position: absolute; left: 0; top: 0; right: 0; height: 4px; background: var(--accent); }
+    .metric-label { display: flex; justify-content: space-between; color: var(--muted); font: 11px Arial, sans-serif; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .metric-icon { color: var(--accent); font-size: 16px; }
+    .metric-value { margin-top: 21px; color: var(--navy); font: 700 31px Arial, sans-serif; }
+    .metric-target { margin-top: 6px; color: var(--muted); font: 11px Arial, sans-serif; }
+    .metric-safety { --accent: #d64545; } .metric-attendance { --accent: #1677ff; } .metric-base { --accent: #00a6a6; } .metric-performance { --accent: #f0a202; } .metric-quality { --accent: #7a5af8; } .metric-cost { --accent: #16875b; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(310px, .75fr); gap: 22px; align-items: start; }
+    .panel { background: var(--white); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .panel-head { padding: 18px 20px 15px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .panel-head h3 { margin: 0; font-size: 19px; font-weight: 400; }
+    .panel-head span { color: var(--muted); font: 11px Arial, sans-serif; }
+    .entry-form { padding: 20px; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    label { color: var(--muted); display: grid; gap: 7px; font: 11px Arial, sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    input, select, textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 0; outline: none; color: var(--ink); background: #fbfcfe; font: 15px Georgia, serif; }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22,119,255,.12); }
+    textarea { min-height: 75px; resize: vertical; }
+    .full { grid-column: 1 / -1; }
+    .form-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+    .hint { color: var(--muted); font: 12px Arial, sans-serif; }
+    .primary { cursor: pointer; border: 0; padding: 12px 18px; color: #fff; background: var(--navy); font: 700 12px Arial, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
+    .primary:hover { background: #1d4b70; }
+    .history { margin-top: 22px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 620px; }
+    th { padding: 12px 20px; text-align: left; color: var(--muted); background: #f7f9fc; font: 10px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+    td { padding: 13px 20px; border-top: 1px solid #edf1f5; font-size: 14px; }
+    td strong { font-family: Arial, sans-serif; font-size: 13px; }
+    .status { display: inline-block; padding: 5px 8px; font: 10px Arial, sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .status-ok { color: #12633f; background: #dff6e9; } .status-warn { color: #866000; background: #fff1c9; } .status-risk { color: #9c2929; background: #ffe0e0; }
+    .empty { color: var(--muted); text-align: center; padding: 25px; font-style: italic; }
+    .phva { padding-bottom: 19px; }
+    .phva-intro { padding: 17px 20px 5px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .cycle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 13px 20px 0; }
+    .cycle-step { padding: 15px; min-height: 130px; border-top: 3px solid var(--step); background: #f8fafc; }
+    .cycle-step h4 { margin: 0 0 8px; color: var(--step); font: 700 12px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+    .cycle-step p { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.4; }
+    .plan { --step: #1677ff; } .do { --step: #00a6a6; } .check { --step: #f0a202; } .act { --step: #d64545; }
+    .cycle-loop { margin: 15px 20px 0; padding: 10px; color: var(--muted); border-top: 1px dashed var(--line); text-align: center; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    @media (max-width: 1100px) { .app-shell { grid-template-columns: 205px 1fr; } .metrics { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 760px) { .app-shell { display: block; } aside { padding: 17px 20px; } .brand { margin-bottom: 17px; } nav { display: flex; gap: 5px; overflow-x: auto; } nav a { white-space: nowrap; margin: 0; padding: 9px; } .side-label, .aside-foot { display: none; } main { padding: 25px 18px 45px; } .topline { display: block; } .date-box { margin-top: 18px; } .content-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .metrics { grid-template-columns: 1fr 1fr; } .metric { min-height: 125px; padding: 13px; } .metric-value { font-size: 26px; margin-top: 15px; } .form-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .form-actions { align-items: stretch; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside>
+      <div class="brand"><div class="brand-mark">TC</div><div><div class="brand-name">Tablero<br>comunicaciones</div><small>Gestión diaria</small></div></div>
+      <div class="side-label">Espacios de trabajo</div>
+      <nav aria-label="Navegación principal">
+        <a class="active" href="#resumen"><span class="icon">◈</span>Resumen del día</a>
+        <a href="#carga"><span class="icon">＋</span>Cargar rendimiento</a>
+        <a href="#phva"><span class="icon">↻</span>Ciclo PHVA</a>
+      </nav>
+      <div class="aside-foot">Un mismo dato, una misma conversación.<br><strong>Actualización colaborativa</strong></div>
+    </aside>
+
+    <main>
+      <header class="topline" id="resumen">
+        <div><div class="eyebrow">Grupo de cosecha de Nay · Reunión de arranque</div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p></div>
+        <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel"></strong></div>
+      </header>
+
+      <section aria-labelledby="metrics-title">
+        <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><span class="section-note">Último registro disponible</span></div>
+        <div class="metrics">
+          <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 incidentes</div></article>
+          <article class="metric metric-attendance"><div class="metric-label">Presentismo <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Objetivo: ≥ 97%</div></article>
+          <article class="metric metric-base"><div class="metric-label">Base estable <span class="metric-icon">▣</span></div><div class="metric-value" id="metricBase">—</div><div class="metric-target">Objetivo: ≥ 100%</div></article>
+          <article class="metric metric-performance"><div class="metric-label">Rendimiento <span class="metric-icon">↗</span></div><div class="metric-value" id="metricPerformance">—</div><div class="metric-target">Objetivo: ≥ 1600</div></article>
+          <article class="metric metric-quality"><div class="metric-label">Calidad <span class="metric-icon">◇</span></div><div class="metric-value" id="metricQuality">—</div><div class="metric-target">Objetivo: ≥ 92%</div></article>
+          <article class="metric metric-cost"><div class="metric-label">Costos <span class="metric-icon">$</span></div><div class="metric-value" id="metricCost">—</div><div class="metric-target">Objetivo: MCI 100%</div></article>
+        </div>
+      </section>
+      <section class="motivation" aria-live="polite"><div class="motivation-mark">✦</div><div><div class="motivation-label">Frase motivadora del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
+
+      <div class="content-grid">
+        <section id="carga" class="panel" style="margin-top: 22px;">
+          <div class="panel-head"><h3>Cargar comunicación diaria</h3><span>Nuevo registro</span></div>
+          <form class="entry-form" id="entryForm">
+            <div class="form-grid">
+              <label>Fecha<input id="date" name="date" type="date" required></label>
+              <label>Equipo / turno<input id="team" name="team" type="text" placeholder="Ej. Equipo A · Turno mañana" required></label>
+              <label>Responsable<input id="owner" name="owner" type="text" placeholder="Nombre del referente" required></label>
+              <label>Seguridad<select id="safety" name="safety"><option value="0 incidentes">0 incidentes</option><option value="1 incidente">1 incidente</option><option value="2+ incidentes">2+ incidentes</option></select></label>
+              <label>Presentismo<input id="attendance" name="attendance" type="text" placeholder="Ej. 97%" required></label>
+              <label>Base estable<input id="base" name="base" type="text" placeholder="Ej. 92%" required></label>
+              <label>Rendimiento<input id="performance" name="performance" type="text" placeholder="Ej. 104%" required></label>
+              <label>Calidad<input id="quality" name="quality" type="text" placeholder="Ej. 99%" required></label>
+              <label>Costos<input id="cost" name="cost" type="text" placeholder="Ej. En presupuesto" required></label>
+              <label class="full">Frase motivadora<textarea id="motivation" name="motivation" placeholder="Ej. Juntos hacemos que cada jornada cuente." required></textarea></label>
+              <label class="full">Hallazgo / mensaje del día<textarea id="message" name="message" placeholder="¿Qué necesitamos conversar con el grupo?"></textarea></label>
+            </div>
+            <div class="form-actions"><span class="hint">Los datos quedan guardados en este navegador.</span><button class="primary" type="submit">Publicar registro</button></div>
+          </form>
+        </section>
+
+        <section id="phva" class="panel phva" style="margin-top: 22px;">
+          <div class="panel-head"><h3>Ciclo PHVA</h3><span>Mejora continua</span></div>
+          <p class="phva-intro">Convertimos el dato del día en una acción visible y aprendemos del resultado.</p>
+          <div class="cycle">
+            <article class="cycle-step plan"><h4>Planificar</h4><p>Definir el objetivo del equipo y anticipar riesgos.</p></article>
+            <article class="cycle-step do"><h4>Hacer</h4><p>Ejecutar el estándar y comunicar el foco de la jornada.</p></article>
+            <article class="cycle-step check"><h4>Verificar</h4><p>Medir los seis indicadores y observar desvíos.</p></article>
+            <article class="cycle-step act"><h4>Actuar</h4><p>Corregir, reconocer y actualizar el estándar.</p></article>
+          </div>
+          <div class="cycle-loop">↻ El aprendizaje vuelve a la planificación</div>
+        </section>
+      </div>
+
+      <section class="panel history" aria-labelledby="history-title">
+        <div class="panel-head"><h3 id="history-title">Historial de comunicaciones</h3><span id="recordCount">0 registros</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Equipo</th><th>Referente</th><th>Rendimiento</th><th>Calidad</th><th>Estado</th></tr></thead><tbody id="historyBody"><tr><td class="empty" colspan="6">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const storageKey = 'tablero-comunicaciones-registros';
+    const apiUrl = '';
+    const form = document.getElementById('entryForm');
+    const dateInput = document.getElementById('date');
+    const today = new Date();
+    const formatDate = (value) => new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
+    dateInput.value = today.toISOString().slice(0, 10);
+    document.getElementById('todayLabel').textContent = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(today);
+
+    const getRecords = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const setRecords = (records) => localStorage.setItem(storageKey, JSON.stringify(records));
+    const loadRecords = async () => {
+      if (!apiUrl) return getRecords();
+      try {
+        const response = await fetch(`${apiUrl}?action=list`);
+        const records = await response.json();
+        setRecords(records);
+        return records;
+      } catch (error) {
+        return getRecords();
+      }
+    };
+    const saveRecord = async (record) => {
+      const records = [record, ...getRecords()];
+      setRecords(records);
+      if (apiUrl) {
+        await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(record) });
+      }
+    };
+    const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
+    const statusFor = (record) => {
+      const values = [numeric(record.attendance) >= 95, numeric(record.base) >= 90, numeric(record.performance) >= 100, numeric(record.quality) >= 98, record.safety === '0 incidentes'];
+      return values.filter(Boolean).length >= 4 ? ['En objetivo', 'status-ok'] : values.filter(Boolean).length >= 2 ? ['Revisar', 'status-warn'] : ['Atención', 'status-risk'];
+    };
+    const render = (records = getRecords()) => {
+      records = records.sort((a, b) => b.date.localeCompare(a.date));
+      const latest = records[0];
+      ['Safety', 'Attendance', 'Base', 'Performance', 'Quality', 'Cost'].forEach((name) => { document.getElementById(`metric${name}`).textContent = latest ? latest[name.toLowerCase()] || latest[name === 'Safety' ? 'safety' : name.toLowerCase()] : '—'; });
+      document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
+      document.getElementById('recordCount').textContent = `${records.length} ${records.length === 1 ? 'registro' : 'registros'}`;
+      document.getElementById('historyBody').innerHTML = records.length ? records.map((record) => { const [label, className] = statusFor(record); return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${record.performance}</td><td>${record.quality}</td><td><span class="status ${className}">${label}</span></td></tr>`; }).join('') : '<tr><td class="empty" colspan="6">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr>';
+    };
+    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = form.querySelector('button[type="submit"]'); const record = Object.fromEntries(new FormData(form).entries()); button.disabled = true; button.textContent = 'Publicando...'; try { await saveRecord(record); form.reset(); dateInput.value = today.toISOString().slice(0, 10); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } finally { button.disabled = false; button.textContent = 'Publicar registro'; } });
+    loadRecords().then(render);
+  </script>
+</body>
+</html>
