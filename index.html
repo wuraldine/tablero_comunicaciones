@@ -244,9 +244,10 @@
       setRecords(getRecords().filter((item) => item.id !== id));
     };
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
-    const percentage = (value) => { const number = numeric(value); return Number.isFinite(number) ? `${number}%` : '—'; };
+    const percentNumber = (value) => { const number = numeric(value); return Number.isFinite(number) ? (number > 0 && number <= 1 ? number * 100 : number) : NaN; };
+    const percentage = (value) => { const number = percentNumber(value); return Number.isFinite(number) ? `${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(number)}%` : '—'; };
     const statusFor = (record) => {
-      const values = [numeric(record.attendance) >= 95, numeric(record.base) >= 90, numeric(record.performance) >= 100, numeric(record.quality) >= 98, record.safety === '0 incidentes'];
+      const values = [percentNumber(record.attendance) >= 95, percentNumber(record.base) >= 90, numeric(record.performance) >= 100, percentNumber(record.quality) >= 98, record.safety === '0 incidentes'];
       return values.filter(Boolean).length >= 4 ? ['En objetivo', 'status-ok'] : values.filter(Boolean).length >= 2 ? ['Revisar', 'status-warn'] : ['Atención', 'status-risk'];
     };
     const render = (records = getRecords()) => {
