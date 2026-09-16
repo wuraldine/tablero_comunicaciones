@@ -161,7 +161,6 @@
           <form class="entry-form" id="entryForm" hidden>
             <div class="form-grid">
               <label>Fecha<input id="date" name="date" type="date" required></label>
-              <label>Equipo / grupo<input id="team" name="team" type="text" placeholder="Ej. Grupo de cosecha de Nay" required></label>
               <label>Responsable<input id="owner" name="owner" type="text" placeholder="Nombre del referente" required></label>
               <label>Seguridad<select id="safety" name="safety"><option value="0 incidentes">0 incidentes</option><option value="1 incidente">1 incidente</option><option value="2+ incidentes">2+ incidentes</option></select></label>
               <label>Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
@@ -196,6 +195,7 @@
     const closeLoginButton = document.getElementById('closeLoginButton');
     const logoutButton = document.getElementById('logoutButton');
     const sessionKey = 'tablero-comunicaciones-session';
+    const groupName = 'Grupo de cosecha de Nay';
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
     let editingId = '';
     const dateInput = document.getElementById('date');
@@ -290,7 +290,7 @@
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionStorage.setItem(sessionKey, sessionToken); loginForm.reset(); setEditorState(true); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionStorage.removeItem(sessionKey); setEditorState(false); });
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
-    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = Object.fromEntries(new FormData(form).entries()); button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
+    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = { ...Object.fromEntries(new FormData(form).entries()), team: groupName }; button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
     setEditorState(Boolean(sessionToken) && Boolean(apiUrl));
     loadRecords().then(render);
   </script>
