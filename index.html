@@ -85,6 +85,13 @@
     .login-copy { margin: 0 0 15px; color: var(--muted); font-size: 14px; }
     .login-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
     .login-message { min-height: 17px; margin: 10px 0 0; color: var(--red); font: 12px Arial, sans-serif; }
+    .login-modal { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: rgba(16, 42, 67, .38); }
+    .login-modal[hidden] { display: none; }
+    .login-card { width: min(100%, 480px); padding: 22px; background: var(--white); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(16, 42, 67, .22); }
+    .login-card-head { display: flex; justify-content: space-between; align-items: start; gap: 15px; margin-bottom: 16px; }
+    .login-card-head h3 { margin: 0; font-size: 21px; font-weight: 400; }
+    .close-login { cursor: pointer; border: 0; color: var(--muted); background: transparent; font: 24px Arial, sans-serif; line-height: 1; }
+    .close-login:hover { color: var(--navy); }
     [hidden] { display: none !important; }
     .history { margin-top: 22px; }
     .table-wrap { overflow-x: auto; }
@@ -123,7 +130,7 @@
 
     <main>
       <header class="topline" id="resumen">
-        <div><div class="eyebrow">Grupo de cosecha de Naybelin Varela </div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p><a class="top-action" href="#carga">Iniciar sesión para cargar</a></div>
+        <div><div class="eyebrow">Grupo de cosecha de Naybelin Varela </div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión para cargar</a></div>
         <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel"></strong></div>
       </header>
 
@@ -143,9 +150,9 @@
       <div class="content-grid">
         <section id="carga" class="panel" style="margin-top: 22px;">
           <div class="panel-head"><h3>Cargar comunicación diaria</h3><span id="accessLabel">Acceso privado</span></div>
-          <div class="login" id="adminGate">
-            <p class="login-copy">El tablero es público para consultar. Iniciá sesión para publicar la información del grupo.</p>
-            <form id="loginForm"><div class="login-grid"><label>Usuario<input id="loginUsername" type="text" autocomplete="username" required></label><label>Contraseña<input id="loginPassword" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Ingresar</button></div><p class="login-message" id="loginMessage" role="alert"></p></form>
+          <div class="login login-modal" id="adminGate" hidden>
+            <div class="login-card"><div class="login-card-head"><div><h3>Iniciar sesión</h3><p class="login-copy">Ingresá para cargar, editar o borrar información.</p></div><button class="close-login" id="closeLoginButton" type="button" aria-label="Cerrar">×</button></div>
+            <form id="loginForm"><div class="login-grid"><label>Usuario<input id="loginUsername" type="text" autocomplete="username" required></label><label>Contraseña<input id="loginPassword" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">Ingresar</button></div><p class="login-message" id="loginMessage" role="alert"></p></form></div>
           </div>
           <form class="entry-form" id="entryForm" hidden>
             <div class="form-grid">
@@ -192,6 +199,8 @@
     const loginForm = document.getElementById('loginForm');
     const adminGate = document.getElementById('adminGate');
     const loginMessage = document.getElementById('loginMessage');
+    const loginTrigger = document.getElementById('loginTrigger');
+    const closeLoginButton = document.getElementById('closeLoginButton');
     const logoutButton = document.getElementById('logoutButton');
     const sessionKey = 'tablero-comunicaciones-session';
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
@@ -206,7 +215,7 @@
     const setRecords = (records) => localStorage.setItem(storageKey, JSON.stringify(records));
     const setEditorState = (isAuthenticated) => {
       const connected = Boolean(apiUrl);
-      adminGate.hidden = isAuthenticated;
+      if (isAuthenticated) adminGate.hidden = true;
       form.hidden = !isAuthenticated;
       loginForm.hidden = !connected || isAuthenticated;
       if (!connected) loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.';
@@ -268,6 +277,10 @@
     const startEdit = (id, records = getRecords()) => { const record = records.find((item) => item.id === id); if (!record) return; editingId = id; Object.entries(record).forEach(([key, value]) => { const field = document.getElementById(key); if (field) field.value = value; }); document.getElementById('submitRecordButton').textContent = 'Guardar cambios'; document.getElementById('cancelEditButton').hidden = false; document.getElementById('formHint').textContent = 'Editando el registro seleccionado.'; form.scrollIntoView({ behavior: 'smooth' }); };
     const resetEdit = () => { editingId = ''; form.reset(); dateInput.value = today.toISOString().slice(0, 10); document.getElementById('submitRecordButton').textContent = 'Publicar registro'; document.getElementById('cancelEditButton').hidden = true; document.getElementById('formHint').textContent = 'Solo tu sesión puede publicar registros.'; };
     const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
+    const openLogin = (event) => { event.preventDefault(); if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
+    loginTrigger.addEventListener('click', openLogin);
+    closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
+    adminGate.addEventListener('click', (event) => { if (event.target === adminGate) adminGate.hidden = true; });
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionStorage.setItem(sessionKey, sessionToken); loginForm.reset(); setEditorState(true); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionStorage.removeItem(sessionKey); setEditorState(false); });
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
