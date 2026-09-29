@@ -96,6 +96,23 @@
     .bulk-table input, .bulk-table select { min-width: 92px; padding: 7px 6px; font: 13px Arial, sans-serif; }
     .bulk-table input[type="date"] { min-width: 132px; }
     .bulk-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+    @media (max-width: 760px) {
+      .bulk-table-wrap { overflow: visible; border: 0; background: transparent; }
+      .bulk-table { min-width: 0; display: block; }
+      .bulk-table thead { display: none; }
+      .bulk-table tbody, .bulk-table tr, .bulk-table td { display: block; width: 100%; }
+      .bulk-table tr { margin-bottom: 12px; padding: 10px; border: 1px solid var(--line); background: var(--white); }
+      .bulk-table td { display: grid; grid-template-columns: 42% 58%; align-items: center; gap: 8px; padding: 5px 0; border: 0; }
+      .bulk-table td:first-child { min-width: 0; padding-bottom: 8px; color: var(--navy); border-bottom: 1px solid var(--line); }
+      .bulk-table td::before { color: var(--muted); font: 10px Arial, sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+      .bulk-table td:nth-child(1) { display: block; }
+      .bulk-table td:nth-child(1)::before { content: 'Persona'; display: block; margin-bottom: 3px; }
+      .bulk-table td:nth-child(2)::before { content: 'Fecha'; }
+      .bulk-table td:nth-child(3)::before { content: 'Rendimiento'; }
+      .bulk-table td:nth-child(4)::before { content: 'Calidad'; }
+      .bulk-table td:nth-child(5)::before { content: 'Observaciones'; }
+      .bulk-table input, .bulk-table select, .bulk-table input[type="date"] { width: 100%; min-width: 0; }
+    }
     .plan-panel { padding-bottom: 19px; }
     .plan-copy { margin: 0; padding: 17px 20px 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
     .plan-list { margin: 8px 20px 0; padding-left: 20px; color: var(--ink); font-size: 14px; line-height: 1.5; }
