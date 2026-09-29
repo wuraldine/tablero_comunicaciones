@@ -35,17 +35,17 @@
     nav .icon { width: 19px; text-align: center; font-family: Arial, sans-serif; font-size: 14px; }
     .aside-foot { margin-top: auto; border-top: 1px solid rgba(255,255,255,.15); padding-top: 18px; color: #9db3c6; font: 12px Arial, sans-serif; line-height: 1.6; }
     main { padding: 28px 4vw 60px; overflow: hidden; }
-    .topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 28px; }
+    .topline { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 28px; }
     .eyebrow { color: var(--teal); font: 11px Arial, sans-serif; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
     h1 { margin: 6px 0 5px; font-size: clamp(32px, 4vw, 48px); font-weight: 400; letter-spacing: -.035em; line-height: 1; }
     .subtitle { margin: 0; color: var(--muted); font-size: 17px; }
-    .date-box { padding: 12px 16px; border: 1px solid var(--line); background: var(--white); min-width: 200px; }
+    .date-box { margin-top: 44px; padding: 12px 16px; border: 1px solid var(--line); background: var(--white); min-width: 200px; }
     .date-box span { display: block; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
     .date-box strong { display: block; margin-top: 4px; color: var(--navy); font: 15px Arial, sans-serif; }
     .date-filter { margin-top: 8px; }
     .date-filter input { padding: 7px 8px; font-size: 13px; }
     .clear-filter { cursor: pointer; margin-top: 7px; padding: 0; border: 0; color: var(--blue); background: transparent; font: 11px Arial, sans-serif; }
-    .top-action { display: inline-block; margin-top: 14px; padding: 10px 14px; color: #fff; background: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
+    .top-action { position: absolute; top: 0; right: 0; display: inline-block; padding: 10px 14px; color: #fff; background: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
     .top-action:hover { background: #1d4b70; }
     .section-heading { display: flex; justify-content: space-between; align-items: baseline; margin: 28px 0 13px; }
     h2 { margin: 0; font-size: 21px; font-weight: 400; }
@@ -54,6 +54,10 @@
     .motivation-mark { font-size: 28px; line-height: 1; color: #b8ffff; }
     .motivation-label { margin-bottom: 5px; color: #b8ffff; font: 10px Arial, sans-serif; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
     .motivation-text { margin: 0; font-size: 20px; line-height: 1.25; }
+    .feedback-panel { margin-top: 22px; padding: 20px 22px; border-left: 4px solid var(--gold); background: #fffdf5; }
+    .feedback-label { color: var(--gold); font: 700 10px Arial, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+    .feedback-panel h2 { margin: 6px 0 7px; font-size: 22px; }
+    .feedback-panel p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; }
     .metrics { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 10px; }
     .metric { min-height: 142px; padding: 16px; background: var(--white); border: 1px solid var(--line); box-shadow: var(--shadow); position: relative; overflow: hidden; }
     .metric::before { content: ''; position: absolute; left: 0; top: 0; right: 0; height: 4px; background: var(--accent); }
@@ -77,6 +81,14 @@
     .full { grid-column: 1 / -1; }
     .form-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
     .hint { color: var(--muted); font: 12px Arial, sans-serif; }
+    .action-preview { margin-top: 15px; padding: 14px 16px; border-left: 3px solid var(--teal); background: #f1fbfb; }
+    .action-preview h4 { margin: 0 0 7px; color: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .action-preview p { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.45; white-space: pre-line; }
+    .action-preview.empty p { color: var(--muted); }
+    .plan-panel { padding-bottom: 19px; }
+    .plan-copy { margin: 0; padding: 17px 20px 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .plan-list { margin: 8px 20px 0; padding-left: 20px; color: var(--ink); font-size: 14px; line-height: 1.5; }
+    .plan-list li { margin: 8px 0; }
     .primary { cursor: pointer; border: 0; padding: 12px 18px; color: #fff; background: var(--navy); font: 700 12px Arial, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
     .primary:hover { background: #1d4b70; }
     .secondary { cursor: pointer; border: 1px solid var(--line); padding: 11px 14px; color: var(--muted); background: var(--white); font: 700 11px Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
@@ -117,7 +129,7 @@
     .plan { --step: #1677ff; } .do { --step: #00a6a6; } .check { --step: #f0a202; } .act { --step: #d64545; }
     .cycle-loop { margin: 15px 20px 0; padding: 10px; color: var(--muted); border-top: 1px dashed var(--line); text-align: center; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     @media (max-width: 1100px) { .app-shell { grid-template-columns: 205px 1fr; } .metrics { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 760px) { .app-shell { display: block; } aside { padding: 17px 20px; } .brand { margin-bottom: 17px; } nav { display: flex; gap: 5px; overflow-x: auto; } nav a { white-space: nowrap; margin: 0; padding: 9px; } .side-label, .aside-foot { display: none; } main { padding: 25px 18px 45px; } .topline { display: block; } .date-box { margin-top: 18px; } .content-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr 1fr; } .login-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .app-shell { display: block; } aside { padding: 17px 20px; } .brand { margin-bottom: 17px; } nav { display: flex; gap: 5px; overflow-x: auto; } nav a { white-space: nowrap; margin: 0; padding: 9px; } .side-label, .aside-foot { display: none; } main { padding: 25px 18px 45px; } .topline { display: block; padding-top: 46px; } .date-box { margin-top: 18px; } .content-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr 1fr; } .login-grid { grid-template-columns: 1fr; } }
     @media (max-width: 480px) { .metrics { grid-template-columns: 1fr 1fr; } .metric { min-height: 125px; padding: 13px; } .metric-value { font-size: 26px; margin-top: 15px; } .form-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .form-actions { align-items: stretch; flex-direction: column; } }
   </style>
 </head>
@@ -150,12 +162,13 @@
         </div>
       </section>
       <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
+      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Retroalimentación personal</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu retroalimentación</h2><p id="feedbackText">Tus resultados de rendimiento y calidad aparecerán aquí después de iniciar sesión.</p></section>
 
       <div class="content-grid">
         <section id="carga" class="panel" style="margin-top: 22px;">
           <div class="panel-head"><h3>Cargar comunicación diaria</h3><span id="accessLabel">Acceso privado</span></div>
           <div class="login login-modal" id="adminGate" hidden>
-            <div class="login-card"><div class="login-card-head"><div><h3>Iniciar sesión</h3><p class="login-copy">Ingresá para cargar, editar o borrar información.</p></div><button class="close-login" id="closeLoginButton" type="button" aria-label="Cerrar">×</button></div>
+            <div class="login-card"><div class="login-card-head"><div><h3>Iniciar sesión</h3><p class="login-copy">Ingresá para consultar tus indicadores o administrar la información.</p></div><button class="close-login" id="closeLoginButton" type="button" aria-label="Cerrar">×</button></div>
             <form id="loginForm"><div class="login-grid"><label>Usuario<input id="loginUsername" type="text" placeholder="Escribí tu usuario" autocomplete="username" required></label><label>Contraseña<input id="loginPassword" type="password" placeholder="Escribí tu contraseña" autocomplete="current-password" required></label><button class="primary" type="submit">Ingresar</button></div><p class="login-message" id="loginMessage" role="alert"></p></form></div>
           </div>
           <form class="entry-form" id="entryForm" hidden>
@@ -170,9 +183,16 @@
               <label>Costos<input id="cost" name="cost" type="number" min="0" max="100" step="0.01" placeholder="Ej. 100" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label class="full">Frase motivadora<textarea id="motivation" name="motivation" placeholder="Ej. Juntos hacemos que cada jornada cuente." required></textarea></label>
               <label class="full">Hallazgo / mensaje del día<textarea id="message" name="message" placeholder="¿Qué necesitamos conversar con el grupo?"></textarea></label>
+              <label class="full">¿Por qué ocurrió la falencia?<textarea id="cause" name="cause" placeholder="Describí la causa principal: falta de personal, demora, error de proceso, etc."></textarea><span class="field-hint">El sistema usará esta explicación junto con los indicadores para sugerir acciones.</span></label>
             </div>
+            <div class="action-preview empty" id="actionPreview"><h4>Plan de acción sugerido</h4><p id="actionPreviewText">Completá los indicadores para recibir una propuesta.</p></div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
           </form>
+        </section>
+        <section class="panel plan-panel" aria-labelledby="plan-title">
+          <div class="panel-head"><h3 id="plan-title">Plan de acción del día</h3><span>Generado automáticamente</span></div>
+          <p class="plan-copy" id="planSummary">Cuando haya un registro, acá aparecerán las acciones prioritarias según sus indicadores y la causa informada.</p>
+          <ol class="plan-list" id="planList"><li>Esperando el próximo registro para proponer acciones.</li></ol>
         </section>
 
       </div>
@@ -197,6 +217,8 @@
     const sessionKey = 'tablero-comunicaciones-session';
     const groupName = 'Grupo de cosecha de Nay';
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
+    let sessionRole = sessionStorage.getItem(`${sessionKey}-role`) || '';
+    let sessionName = sessionStorage.getItem(`${sessionKey}-name`) || '';
     let editingId = '';
     const dateInput = document.getElementById('date');
     const dateFilter = document.getElementById('dateFilter');
@@ -209,27 +231,31 @@
 
     const getRecords = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
     const setRecords = (records) => localStorage.setItem(storageKey, JSON.stringify(records));
-    const setEditorState = (isAuthenticated) => {
+    const setEditorState = (session) => {
       const connected = Boolean(apiUrl);
+      const isAuthenticated = Boolean(sessionToken && session);
+      const isAdmin = isAuthenticated && session.role === 'admin';
       if (isAuthenticated) adminGate.hidden = true;
-      form.hidden = !isAuthenticated;
+      form.hidden = !isAdmin;
       loginForm.hidden = !connected || isAuthenticated;
       if (!connected) loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.';
-      document.getElementById('accessLabel').textContent = isAuthenticated ? 'Sesión activa' : 'Acceso privado';
+      document.getElementById('accessLabel').textContent = isAdmin ? 'Sesión administradora' : isAuthenticated ? `Sesión de ${session.name}` : 'Acceso privado';
+      loginTrigger.textContent = isAuthenticated ? 'Cerrar sesión' : 'Iniciar sesión';
     };
     const postToApi = async (payload) => {
       const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       return response.json();
     };
     const loadRecords = async () => {
-      if (!apiUrl) return getRecords();
+      if (!apiUrl || !sessionToken) return [];
       try {
-        const response = await fetch(`${apiUrl}?action=list`);
+        const response = await fetch(`${apiUrl}?action=list&token=${encodeURIComponent(sessionToken)}`);
         const records = await response.json();
+        if (!Array.isArray(records)) throw new Error(records.message || 'No se pudieron cargar los registros.');
         setRecords(records);
         return records;
       } catch (error) {
-        return getRecords();
+        return [];
       }
     };
     const saveRecord = async (record) => {
@@ -251,6 +277,42 @@
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
     const percentNumber = (value) => { const number = numeric(value); return Number.isFinite(number) ? (number > 0 && number <= 1 ? number * 100 : number) : NaN; };
     const percentage = (value) => { const number = percentNumber(value); return Number.isFinite(number) ? `${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(number)}%` : '—'; };
+    const actionPlanFor = (record) => {
+      const actions = [];
+      const cause = String(record.cause || '').trim();
+      if (cause) actions.push(`Validar la causa informada (${cause}) con el responsable y definir una medida preventiva concreta.`);
+      if (record.safety && record.safety !== '0 accidentes') actions.push('Seguridad: detener la tarea involucrada, revisar el riesgo y realizar una charla preventiva antes de continuar.');
+      if (percentNumber(record.attendance) < 97) actions.push('Presentismo: confirmar ausencias, reorganizar la cobertura y acordar seguimiento diario hasta recuperar el objetivo.');
+      if (percentNumber(record.base) < 100) actions.push('Base estable: identificar el puesto faltante y recuperar la dotación planificada para la próxima jornada.');
+      if (numeric(record.performance) < 1600) actions.push('Rendimiento: observar el proceso en campo, detectar la demora principal y fijar una meta de recuperación para el siguiente turno.');
+      if (percentNumber(record.quality) < 92) actions.push('Calidad: revisar los desvíos, repetir el estándar de trabajo y controlar una muestra antes del cierre.');
+      if (percentNumber(record.cost) < 100) actions.push('Costos: revisar consumos y tiempos del día, separar la causa controlable y acordar una corrección con el equipo.');
+      return actions.length ? actions : ['Mantener el estándar actual y verificar los indicadores en la próxima jornada.'];
+    };
+    const renderActionPlan = (record) => {
+      const actions = actionPlanFor(record);
+      document.getElementById('planSummary').textContent = record?.cause ? `Causa registrada: ${record.cause}` : 'No se informó una causa específica; las acciones se basan en los indicadores del registro.';
+      document.getElementById('planList').innerHTML = actions.map((action) => `<li>${action}</li>`).join('');
+    };
+    const updateActionPreview = () => {
+      const record = Object.fromEntries(new FormData(form).entries());
+      const actions = actionPlanFor(record);
+      const preview = document.getElementById('actionPreview');
+      preview.classList.toggle('empty', !record.cause && !record.safety && !record.attendance && !record.base && !record.performance && !record.quality && !record.cost);
+      document.getElementById('actionPreviewText').textContent = actions.join('\n');
+    };
+    const feedbackFor = (record) => {
+      const performance = numeric(record.performance);
+      const quality = percentNumber(record.quality);
+      if (!Number.isFinite(performance) || !Number.isFinite(quality)) return 'Todavía no hay un registro completo de rendimiento y calidad para comentar.';
+      const performanceMessage = performance >= 1600 ? 'Tu rendimiento está en el objetivo.' : 'Tu rendimiento está por debajo del objetivo de 1600; revisá el ritmo y la principal demora del proceso.';
+      const qualityMessage = quality >= 92 ? 'Tu calidad está en el objetivo.' : 'Tu calidad está por debajo del objetivo de 92%; revisá el estándar y controlá una muestra antes del cierre.';
+      return `${performanceMessage} ${qualityMessage}`;
+    };
+    const renderFeedback = (record) => {
+      document.getElementById('feedbackTitle').textContent = sessionName ? `Resultado de ${sessionName}` : 'Retroalimentación del último registro';
+      document.getElementById('feedbackText').textContent = feedbackFor(record || {});
+    };
     const weekInfo = (value) => { const date = new Date(`${value}T12:00:00`); const start = new Date(date); start.setDate(date.getDate() - date.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); const firstSunday = new Date(start.getFullYear(), 0, 1); firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay()); const number = Math.floor((start - firstSunday) / 604800000) + 1; const key = `${start.getFullYear()}-${String(number).padStart(2, '0')}`; return { key, number, start, end }; };
     const weekLabel = ({ number, start, end }) => `Semana ${number} · ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short' }).format(start)} - ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end)}`;
     const populateWeekFilter = (records) => { const weeks = new Map(); records.forEach((record) => { if (record.date) { const info = weekInfo(record.date); weeks.set(info.key, info); } }); const current = weekInfo(today.toISOString().slice(0, 10)); weeks.set(current.key, current); const selected = weekFilter.value || current.key; weekFilter.innerHTML = [...weeks.values()].sort((a, b) => b.start - a.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join(''); weekFilter.value = weeks.has(selected) ? selected : current.key; };
@@ -271,9 +333,11 @@
       document.getElementById('metricQuality').textContent = latest ? percentage(latest.quality) : '—';
       document.getElementById('metricCost').textContent = latest ? percentage(latest.cost) : '—';
       document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
+      renderFeedback(latest || {});
+      renderActionPlan(latest || {});
       const sortedHistoryRecords = historyRecords.sort((a, b) => b.date.localeCompare(a.date));
       document.getElementById('recordCount').textContent = `${sortedHistoryRecords.length} ${sortedHistoryRecords.length === 1 ? 'registro' : 'registros'}`;
-      document.getElementById('historyBody').innerHTML = sortedHistoryRecords.length ? sortedHistoryRecords.map((record) => { const [label, className] = statusFor(record); const actions = sessionToken ? `<div class="row-actions"><button class="row-action" type="button" data-edit="${record.id}">Editar</button><button class="row-action" type="button" data-delete="${record.id}">Borrar</button></div>` : '—'; return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${record.performance || '—'}</td><td>${percentage(record.quality)}</td><td><span class="status ${className}">${label}</span></td><td>${actions}</td></tr>`; }).join('') : '<tr><td class="empty" colspan="7">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr>';
+      document.getElementById('historyBody').innerHTML = sortedHistoryRecords.length ? sortedHistoryRecords.map((record) => { const [label, className] = statusFor(record); const actions = sessionRole === 'admin' ? `<div class="row-actions"><button class="row-action" type="button" data-edit="${record.id}">Editar</button><button class="row-action" type="button" data-delete="${record.id}">Borrar</button></div>` : '—'; return `<tr><td>${formatDate(record.date)}</td><td><strong>${record.team}</strong></td><td>${record.owner}</td><td>${record.performance || '—'}</td><td>${percentage(record.quality)}</td><td><span class="status ${className}">${label}</span></td><td>${actions}</td></tr>`; }).join('') : '<tr><td class="empty" colspan="7">Todavía no hay registros para esta sesión.</td></tr>';
       document.querySelectorAll('[data-edit]').forEach((button) => button.addEventListener('click', () => startEdit(button.dataset.edit, sortedHistoryRecords)));
       document.querySelectorAll('[data-delete]').forEach((button) => button.addEventListener('click', () => removeRecord(button.dataset.delete)));
     };
@@ -283,15 +347,16 @@
     dateFilter.addEventListener('change', () => loadRecords().then(render));
     weekFilter.addEventListener('change', () => loadRecords().then(render));
     clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
-    const openLogin = (event) => { event.preventDefault(); if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
+    const openLogin = (event) => { event.preventDefault(); if (sessionToken) { logoutButton.click(); return; } if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
     loginTrigger.addEventListener('click', openLogin);
     closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
     adminGate.addEventListener('click', (event) => { if (event.target === adminGate) adminGate.hidden = true; });
-    loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionStorage.setItem(sessionKey, sessionToken); loginForm.reset(); setEditorState(true); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
-    logoutButton.addEventListener('click', () => { sessionToken = ''; sessionStorage.removeItem(sessionKey); setEditorState(false); });
+    loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionRole = result.role; sessionName = result.name; sessionStorage.setItem(sessionKey, sessionToken); sessionStorage.setItem(`${sessionKey}-role`, sessionRole); sessionStorage.setItem(`${sessionKey}-name`, sessionName); loginForm.reset(); setEditorState({ role: sessionRole, name: sessionName }); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
+    logoutButton.addEventListener('click', () => { sessionToken = ''; sessionRole = ''; sessionName = ''; sessionStorage.removeItem(sessionKey); sessionStorage.removeItem(`${sessionKey}-role`); sessionStorage.removeItem(`${sessionKey}-name`); setEditorState(null); render([]); });
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
+    form.addEventListener('input', updateActionPreview);
     form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = { ...Object.fromEntries(new FormData(form).entries()), team: groupName }; button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
-    setEditorState(Boolean(sessionToken) && Boolean(apiUrl));
+    setEditorState(sessionToken && apiUrl ? { role: sessionRole, name: sessionName } : null);
     loadRecords().then(render);
   </script>
 </body>
