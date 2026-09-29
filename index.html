@@ -217,7 +217,7 @@
 
   <script>
     const storageKey = 'tablero-comunicaciones-registros';
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbxl7g2ChtHk_Xzjg5koqR7wV7vy2_9644tiDsEGh8utM3TioPI1_-znAQ8CEMn6h1F1rQ/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbz6VwsUKO3kCml31ygdZFGCtpkUnj318t7hXyTKDNfRvB9TyYYwv3Cwaty521S06JraxA/exec';
     const form = document.getElementById('entryForm');
     const loginForm = document.getElementById('loginForm');
     const adminGate = document.getElementById('adminGate');
@@ -255,6 +255,7 @@
     };
     const postToApi = async (payload) => {
       const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      if (!response.ok) throw new Error(`El servidor respondió con error ${response.status}.`);
       return response.json();
     };
     const loadRecords = async () => {
@@ -266,6 +267,7 @@
         setRecords(records);
         return records;
       } catch (error) {
+        if (sessionToken) loginMessage.textContent = error.message || 'No se pudieron cargar los registros.';
         return [];
       }
     };
@@ -373,7 +375,7 @@
     loginTrigger.addEventListener('click', openLogin);
     closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
     adminGate.addEventListener('click', (event) => { if (event.target === adminGate) adminGate.hidden = true; });
-    loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionRole = result.role; sessionName = result.name; sessionStorage.setItem(sessionKey, sessionToken); sessionStorage.setItem(`${sessionKey}-role`, sessionRole); sessionStorage.setItem(`${sessionKey}-name`, sessionName); loginForm.reset(); setEditorState({ role: sessionRole, name: sessionName }); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
+    loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionRole = result.role || 'admin'; sessionName = result.name || 'Administrador'; sessionStorage.setItem(sessionKey, sessionToken); sessionStorage.setItem(`${sessionKey}-role`, sessionRole); sessionStorage.setItem(`${sessionKey}-name`, sessionName); loginForm.reset(); setEditorState({ role: sessionRole, name: sessionName }); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionRole = ''; sessionName = ''; sessionStorage.removeItem(sessionKey); sessionStorage.removeItem(`${sessionKey}-role`); sessionStorage.removeItem(`${sessionKey}-name`); setEditorState(null); render([]); });
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
     form.addEventListener('input', updateActionPreview);

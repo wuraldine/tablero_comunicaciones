@@ -140,8 +140,10 @@ function login(payload) {
   const username = properties.getProperty('ADMIN_USERNAME');
   const password = properties.getProperty('ADMIN_PASSWORD');
   let session;
-  if (username && password && payload.username === username && payload.password === password) session = { role: 'admin', username, name: 'Administrador' };
-  else session = findUser(payload.username, payload.password);
+  const submittedUsername = String(payload.username || '').trim();
+  const submittedPassword = String(payload.password || '').trim();
+  if (username && password && submittedUsername.toLowerCase() === String(username).trim().toLowerCase() && submittedPassword === String(password).trim()) session = { role: 'admin', username, name: 'Administrador' };
+  else session = findUser(submittedUsername, submittedPassword);
   if (!session) return json({ ok: false, message: 'Usuario o contraseña incorrectos.' });
   const token = Utilities.getUuid();
   CacheService.getScriptCache().put(`session_${token}`, JSON.stringify(session), SESSION_TTL_SECONDS);
@@ -153,8 +155,11 @@ function findUser(username, password) {
   const sheet = getUsersSheet();
   if (sheet.getLastRow() < 2) return null;
   const normalizedUsername = String(username).trim().toLowerCase();
-  const row = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues().find((item) => String(item[0]).trim().toLowerCase() === normalizedUsername && item[4] !== false && item[4] !== 'false');
-  return row && hashPassword(password) === String(row[2]) ? { role: 'user', username: row[0], name: row[1] } : null;
+  const row = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues().find((item) => {
+    const matchesIdentity = String(item[0]).trim().toLowerCase() === normalizedUsername || normalize(item[1]) === normalize(username);
+    return matchesIdentity && item[4] !== false && item[4] !== 'false';
+  });
+  return row && hashPassword(String(password).trim()) === String(row[2]) ? { role: 'user', username: row[0], name: row[1] } : null;
 }
 
 function getSession(token) {
