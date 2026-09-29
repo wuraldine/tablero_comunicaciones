@@ -108,6 +108,13 @@ function doPost(event) {
     sheet.appendRow(HEADERS.map((header) => payload.record[header] || ''));
     return json({ ok: true, id: String(sheet.getLastRow()) });
   }
+  else if (payload.action === 'bulkSave') {
+    const records = Array.isArray(payload.records) ? payload.records : [];
+    if (!records.length) return json({ ok: false, message: 'No se recibieron filas para cargar.' });
+    const rows = records.map((record) => HEADERS.map((header) => record[header] || ''));
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
+    return json({ ok: true, count: rows.length });
+  }
   else if (payload.action === 'update') updateRecord(sheet, payload.id, payload.record);
   else if (payload.action === 'delete') deleteRecord(sheet, payload.id);
   else return json({ ok: false, message: 'Acción no válida.' });
@@ -145,7 +152,8 @@ function findUser(username, password) {
   if (!username || !password) return null;
   const sheet = getUsersSheet();
   if (sheet.getLastRow() < 2) return null;
-  const row = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues().find((item) => String(item[0]) === String(username) && item[4] !== false && item[4] !== 'false');
+  const normalizedUsername = String(username).trim().toLowerCase();
+  const row = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues().find((item) => String(item[0]).trim().toLowerCase() === normalizedUsername && item[4] !== false && item[4] !== 'false');
   return row && hashPassword(password) === String(row[2]) ? { role: 'user', username: row[0], name: row[1] } : null;
 }
 
