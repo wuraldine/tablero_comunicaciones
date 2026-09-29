@@ -88,7 +88,13 @@
     .bulk-upload { margin-top: 20px; padding: 16px; border: 1px dashed var(--line); background: #fbfcfe; }
     .bulk-upload h4 { margin: 0 0 6px; color: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     .bulk-upload p { margin: 0 0 10px; color: var(--muted); font: 12px Arial, sans-serif; line-height: 1.45; }
-    .bulk-upload textarea { min-height: 110px; font: 12px Consolas, monospace; }
+    .bulk-table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--white); }
+    .bulk-table { min-width: 850px; }
+    .bulk-table th, .bulk-table td { padding: 7px 8px; }
+    .bulk-table th { white-space: nowrap; }
+    .bulk-table td:first-child { min-width: 170px; font: 13px Arial, sans-serif; font-weight: 700; }
+    .bulk-table input, .bulk-table select { min-width: 92px; padding: 7px 6px; font: 13px Arial, sans-serif; }
+    .bulk-table input[type="date"] { min-width: 132px; }
     .bulk-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
     .plan-panel { padding-bottom: 19px; }
     .plan-copy { margin: 0; padding: 17px 20px 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
@@ -193,8 +199,8 @@
             <div class="action-preview empty" id="actionPreview"><h4>Plan de acción sugerido</h4><p id="actionPreviewText">Completá los indicadores para recibir una propuesta.</p></div>
             <div class="bulk-upload">
               <h4>Carga masiva de información grupal</h4>
-              <p>Pegá desde Excel o Google Sheets una fila por persona. Columnas: fecha, nombre, rendimiento, calidad, presentismo, base, seguridad, costos, frase, mensaje y causa. Los cuatro últimos campos son opcionales.</p>
-              <textarea id="bulkRecords" placeholder="fecha\tnombre\trendimiento\tcalidad\tpresentismo\tbase\tseguridad\tcostos\tfrase\tmensaje\tcausa\n2026-09-28\tErika Arango\t1650\t94\t98\t100\t0 accidentes\t100\tBuen trabajo\tSin novedades\t\n2026-09-28\tValentina Arango\t1520\t90\t97\t100\t0 accidentes\t98\tSeguimos mejorando\tRevisar calidad\tError de proceso"></textarea>
+              <p>Completá las filas que quieras cargar. Son obligatorios fecha, rendimiento y calidad; los demás indicadores son opcionales.</p>
+              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Fecha</th><th>Rendimiento</th><th>Calidad %</th><th>Presentismo %</th><th>Base %</th><th>Seguridad</th><th>Costos %</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
@@ -227,6 +233,7 @@
     const logoutButton = document.getElementById('logoutButton');
     const sessionKey = 'tablero-comunicaciones-session';
     const groupName = 'Grupo de cosecha de Nay';
+    const collaboratorNames = ['Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo', 'Ronald Cardoza', 'Angela Chacin', 'Yeinys Contreras', 'Adriana De Avila', 'Paola Ferreira', 'Fernanda Gallego', 'Jaiber Galvan', 'Claudia Garcia', 'Carolina Gonzalez', 'Libardo Grisales', 'Mario Hernandez', 'Geraldine Lopez', 'Yiseth Medina', 'Danilson Mendoza', 'Alba Muñoz', 'Fanelis Narvaez', 'Sophia Pacheco', 'Margara Piedrahita', 'Carolina Sanchez', 'Yurianys Serna', 'Rosa Serna', 'Adelmo Urariyu', 'Yeisly Valladares', 'Natalia Amariles', 'Vergara Solanyi'];
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
     let sessionRole = sessionStorage.getItem(`${sessionKey}-role`) || '';
     let sessionName = sessionStorage.getItem(`${sessionKey}-name`) || '';
@@ -287,18 +294,22 @@
       if (!result.ok) throw new Error(result.message || 'No se pudo borrar el registro.');
       setRecords(getRecords().filter((item) => item.id !== id));
     };
-    const parseBulkRows = (text) => {
-      const lines = text.trim().split(/\r?\n/).filter(Boolean);
-      if (!lines.length) throw new Error('Pegá al menos una fila para cargar.');
-      const firstColumns = (lines[0].includes('\t') ? lines[0].split('\t') : lines[0].split(',')).map((value) => value.trim().toLowerCase());
-      const startsWithHeader = firstColumns[0] === 'fecha' || firstColumns[0] === 'date';
-      const dataLines = startsWithHeader ? lines.slice(1) : lines;
-      return dataLines.map((line, index) => {
-        const columns = (line.includes('\t') ? line.split('\t') : line.split(',')).map((value) => value.trim());
-        const [date, owner, performance, quality, attendance = '', base = '', safety = '0 accidentes', cost = '', motivation = '', message = '', cause = ''] = columns;
-        if (!date || !owner || !performance || !quality) throw new Error(`La fila ${index + (startsWithHeader ? 2 : 1)} debe tener fecha, nombre, rendimiento y calidad.`);
-        return { date, team: groupName, owner, safety: safety || '0 accidentes', attendance, base, performance, quality, cost, motivation, message, cause, planAccion: '' };
+    const renderBulkTable = () => {
+      const todayValue = today.toISOString().slice(0, 10);
+      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="date" type="date" value="${todayValue}"></td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendance" type="number" min="0" max="100" step="0.01" placeholder="97"></td><td><input data-field="base" type="number" min="0" max="100" step="0.01" placeholder="100"></td><td><select data-field="safety"><option>0 accidentes</option><option>1 accidente</option><option>2+ accidentes</option></select></td><td><input data-field="cost" type="number" min="0" max="100" step="0.01" placeholder="100"></td></tr>`).join('');
+    };
+    const collectBulkRows = () => {
+      const records = [];
+      document.querySelectorAll('[data-bulk-row]').forEach((row) => {
+        const value = (field) => row.querySelector(`[data-field="${field}"]`).value.trim();
+        const performance = value('performance');
+        const quality = value('quality');
+        if (!performance && !quality) return;
+        if (!performance || !quality) throw new Error(`Completá rendimiento y calidad para ${row.firstElementChild.textContent}.`);
+        records.push({ date: value('date'), team: groupName, owner: row.firstElementChild.textContent, safety: value('safety'), attendance: value('attendance'), base: value('base'), performance, quality, cost: value('cost'), motivation: '', message: '', cause: '', planAccion: '' });
       });
+      if (!records.length) throw new Error('Completá al menos una fila antes de subir la tabla.');
+      return records;
     };
     const bulkSaveRecords = async (records) => {
       const result = await postToApi({ action: 'bulkSave', token: sessionToken, records });
@@ -392,9 +403,9 @@
       button.disabled = true;
       message.textContent = '';
       try {
-        const records = parseBulkRows(document.getElementById('bulkRecords').value);
+        const records = collectBulkRows();
         const count = await bulkSaveRecords(records);
-        document.getElementById('bulkRecords').value = '';
+        document.querySelectorAll('[data-bulk-row] input[type="number"]').forEach((input) => { input.value = ''; });
         message.textContent = `${count} registros cargados.`;
         render(await loadRecords());
       } catch (error) {
@@ -404,6 +415,7 @@
       }
     });
     form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = { ...Object.fromEntries(new FormData(form).entries()), team: groupName }; button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
+    renderBulkTable();
     setEditorState(sessionToken && apiUrl ? { role: sessionRole, name: sessionName } : null);
     loadRecords().then(render);
   </script>
