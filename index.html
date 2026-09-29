@@ -192,9 +192,9 @@
             </div>
             <div class="action-preview empty" id="actionPreview"><h4>Plan de acción sugerido</h4><p id="actionPreviewText">Completá los indicadores para recibir una propuesta.</p></div>
             <div class="bulk-upload">
-              <h4>Carga masiva de rendimientos</h4>
-              <p>Pegá desde Excel o Google Sheets una fila por persona, separada por tabulaciones: fecha, nombre, rendimiento, calidad, presentismo y base. Solo el administrador puede usar esta carga.</p>
-              <textarea id="bulkRecords" placeholder="2026-09-28\tErika Arango\t1650\t94\t98\t100\n2026-09-28\tValentina Arango\t1520\t90\t97\t100"></textarea>
+              <h4>Carga masiva de información grupal</h4>
+              <p>Pegá desde Excel o Google Sheets una fila por persona. Columnas: fecha, nombre, rendimiento, calidad, presentismo, base, seguridad, costos, frase, mensaje y causa. Los cuatro últimos campos son opcionales.</p>
+              <textarea id="bulkRecords" placeholder="fecha\tnombre\trendimiento\tcalidad\tpresentismo\tbase\tseguridad\tcostos\tfrase\tmensaje\tcausa\n2026-09-28\tErika Arango\t1650\t94\t98\t100\t0 accidentes\t100\tBuen trabajo\tSin novedades\t\n2026-09-28\tValentina Arango\t1520\t90\t97\t100\t0 accidentes\t98\tSeguimos mejorando\tRevisar calidad\tError de proceso"></textarea>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
@@ -287,12 +287,19 @@
       if (!result.ok) throw new Error(result.message || 'No se pudo borrar el registro.');
       setRecords(getRecords().filter((item) => item.id !== id));
     };
-    const parseBulkRows = (text) => text.trim().split(/\r?\n/).filter(Boolean).map((line, index) => {
-      const columns = line.includes('\t') ? line.split('\t') : line.split(',');
-      const [date, owner, performance, quality, attendance = '', base = ''] = columns.map((value) => value.trim());
-      if (!date || !owner || !performance || !quality) throw new Error(`La fila ${index + 1} debe tener fecha, nombre, rendimiento y calidad.`);
-      return { date, team: groupName, owner, safety: '0 accidentes', attendance, base, performance, quality, cost: '', motivation: '', message: '', cause: '', planAccion: '' };
-    });
+    const parseBulkRows = (text) => {
+      const lines = text.trim().split(/\r?\n/).filter(Boolean);
+      if (!lines.length) throw new Error('Pegá al menos una fila para cargar.');
+      const firstColumns = (lines[0].includes('\t') ? lines[0].split('\t') : lines[0].split(',')).map((value) => value.trim().toLowerCase());
+      const startsWithHeader = firstColumns[0] === 'fecha' || firstColumns[0] === 'date';
+      const dataLines = startsWithHeader ? lines.slice(1) : lines;
+      return dataLines.map((line, index) => {
+        const columns = (line.includes('\t') ? line.split('\t') : line.split(',')).map((value) => value.trim());
+        const [date, owner, performance, quality, attendance = '', base = '', safety = '0 accidentes', cost = '', motivation = '', message = '', cause = ''] = columns;
+        if (!date || !owner || !performance || !quality) throw new Error(`La fila ${index + (startsWithHeader ? 2 : 1)} debe tener fecha, nombre, rendimiento y calidad.`);
+        return { date, team: groupName, owner, safety: safety || '0 accidentes', attendance, base, performance, quality, cost, motivation, message, cause, planAccion: '' };
+      });
+    };
     const bulkSaveRecords = async (records) => {
       const result = await postToApi({ action: 'bulkSave', token: sessionToken, records });
       if (!result.ok) throw new Error(result.message || 'No se pudo subir la tabla.');
