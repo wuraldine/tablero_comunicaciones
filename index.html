@@ -200,7 +200,7 @@
             <div class="bulk-upload">
               <h4>Carga masiva de información grupal</h4>
               <p>Completá las filas que quieras cargar. Solo son obligatorios fecha, rendimiento y calidad.</p>
-              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Fecha</th><th>Rendimiento</th><th>Calidad %</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
+              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Fecha</th><th>Rendimiento</th><th>Calidad %</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
@@ -296,7 +296,7 @@
     };
     const renderBulkTable = () => {
       const todayValue = today.toISOString().slice(0, 10);
-      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="date" type="date" value="${todayValue}"></td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td></tr>`).join('');
+      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="date" type="date" value="${todayValue}"></td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
     };
     const collectBulkRows = () => {
       const records = [];
@@ -306,7 +306,7 @@
         const quality = value('quality');
         if (!performance && !quality) return;
         if (!performance || !quality) throw new Error(`Completá rendimiento y calidad para ${row.firstElementChild.textContent}.`);
-        records.push({ date: value('date'), team: groupName, owner: row.firstElementChild.textContent, safety: '', attendance: '', base: '', performance, quality, cost: '', motivation: '', message: '', cause: '', planAccion: '' });
+        records.push({ date: value('date'), team: groupName, owner: row.firstElementChild.textContent, safety: '', attendance: '', base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '' });
       });
       if (!records.length) throw new Error('Completá al menos una fila antes de subir la tabla.');
       return records;
