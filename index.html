@@ -159,6 +159,38 @@
     @media (max-width: 1100px) { .app-shell { grid-template-columns: 205px 1fr; } .metrics { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 760px) { .app-shell { display: block; } aside { padding: 17px 20px; } .brand { margin-bottom: 17px; } nav { display: flex; gap: 5px; overflow-x: auto; } nav a { white-space: nowrap; margin: 0; padding: 9px; } .side-label, .aside-foot { display: none; } main { padding: 25px 18px 45px; } .topline { display: block; padding-top: 46px; } .date-box { margin-top: 18px; } .content-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr 1fr; } .login-grid { grid-template-columns: 1fr; } }
     @media (max-width: 480px) { .metrics { grid-template-columns: 1fr 1fr; } .metric { min-height: 125px; padding: 13px; } .metric-value { font-size: 26px; margin-top: 15px; } .form-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .form-actions { align-items: stretch; flex-direction: column; } }
+    /* Dashboard presentation inspired by the reference layout. */
+    body { background: #eef2f8; font-family: Arial, Helvetica, sans-serif; }
+    .app-shell { display: block; max-width: 1220px; margin: 0 auto; }
+    aside { display: none; }
+    main { padding: 14px 0 48px; }
+    .topline { min-height: 70px; margin: 0 0 18px; padding: 17px 22px; color: #fff; background: #203867; border-bottom: 3px solid #f2c800; border-radius: 12px; align-items: center; }
+    .topline > div:first-child { min-width: 0; padding-right: 160px; }
+    .eyebrow { color: #fff; font-size: 17px; letter-spacing: .02em; text-transform: uppercase; }
+    h1 { margin: 3px 0 0; color: #fff; font-size: 25px; font-weight: 700; letter-spacing: 0; }
+    .subtitle { margin-top: 3px; color: #cbd6ea; font: 13px Arial, sans-serif; }
+    .date-box { display: none; }
+    .top-action { top: 16px; right: 22px; padding: 11px 16px; border-radius: 9px; color: #203867; background: #fff; font-size: 12px; letter-spacing: 0; text-transform: none; }
+    .top-action:hover { color: #203867; background: #f5f7fb; }
+    .topline::after { content: 'Rendimiento grupal'; position: absolute; left: 22px; bottom: -53px; color: #203867; font: 700 16px Arial, sans-serif; }
+    .view-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 18px; padding: 4px; background: #e3e8f2; border-radius: 11px; }
+    .view-tabs a { padding: 11px 8px; color: #52627d; text-align: center; text-decoration: none; font: 700 13px Arial, sans-serif; border-radius: 8px; }
+    .view-tabs a:hover, .view-tabs a.active { color: #fff; background: #203867; }
+    .section-heading { margin: 69px 0 12px; }
+    h2 { font-family: Arial, sans-serif; font-weight: 700; }
+    .section-note { color: #70809b; }
+    .metrics { gap: 12px; }
+    .metric { min-height: 126px; border: 1px solid #dbe2ee; border-radius: 12px; box-shadow: 0 4px 13px rgba(32, 56, 103, .07); }
+    .metric::before { height: 3px; }
+    .metric-value { margin-top: 19px; font-size: 29px; }
+    .motivation { border-radius: 10px; box-shadow: none; }
+    .feedback-panel { margin: 18px 0 0; border: 1px solid #e1e6ef; border-left: 4px solid #f2c800; border-radius: 10px; background: #fff; box-shadow: 0 4px 13px rgba(32, 56, 103, .05); }
+    .feedback-label { color: #70809b; }
+    .feedback-panel h2 { font-size: 20px; }
+    .content-grid { margin-top: 22px; }
+    .panel { border-radius: 12px; box-shadow: 0 4px 13px rgba(32, 56, 103, .06); }
+    .history { border-radius: 12px; }
+    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .topline::after { left: 12px; bottom: -46px; font-size: 15px; } .section-heading { margin-top: 60px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
 <body>
@@ -174,9 +206,10 @@
 
     <main>
       <header class="topline" id="resumen">
-        <div><div class="eyebrow">Grupo de cosecha de Naybelin Varela </div><h1>Rendimiento del grupo</h1><p class="subtitle">La fotografía diaria para conversar, decidir y mejorar.</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión para cargar</a></div>
+        <div><div class="eyebrow">Grupo de cosecha</div><h1>Rendimiento grupal</h1><p class="subtitle">Resultados diarios de rendimiento y calidad</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión</a></div>
         <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Todas las jornadas</strong><label class="date-filter"><span>Filtrar por fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div>
       </header>
+      <nav class="view-tabs" aria-label="Vistas del tablero"><a class="active" href="#metrics-title">Rendimiento</a><a href="#metrics-title">Calidad</a><a href="#history-title">Historial</a><a href="#feedbackTitle">Mi resultado</a></nav>
 
       <section aria-labelledby="metrics-title">
         <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><span class="section-note">Último registro disponible</span></div>
@@ -190,7 +223,7 @@
         </div>
       </section>
       <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
-      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Retroalimentación personal</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu retroalimentación</h2><p id="feedbackText">Tus resultados de rendimiento y calidad aparecerán aquí después de iniciar sesión.</p></section>
+      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p></section>
 
       <div class="content-grid">
         <section id="carga" class="panel" style="margin-top: 22px;">
@@ -369,8 +402,13 @@
       return `${performanceMessage} ${qualityMessage}`;
     };
     const renderFeedback = (record) => {
-      document.getElementById('feedbackTitle').textContent = sessionName ? `Resultado de ${sessionName}` : 'Retroalimentación del último registro';
-      document.getElementById('feedbackText').textContent = feedbackFor(record || {});
+      if (!sessionName || !record?.date) {
+        document.getElementById('feedbackTitle').textContent = sessionName ? `Resultado de ${sessionName}` : 'Iniciá sesión para consultar tu resultado';
+        document.getElementById('feedbackText').textContent = feedbackFor(record || {});
+        return;
+      }
+      document.getElementById('feedbackTitle').textContent = `${sessionName}, tu desempeño del día ${formatDate(record.date)} fue de ${record.performance || '—'} y tu calidad fue de ${percentage(record.quality)}.`;
+      document.getElementById('feedbackText').textContent = record.message ? `${feedbackFor(record)} Observación: ${record.message}` : feedbackFor(record);
     };
     const weekInfo = (value) => { const date = new Date(`${value}T12:00:00`); const start = new Date(date); start.setDate(date.getDate() - date.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); const firstSunday = new Date(start.getFullYear(), 0, 1); firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay()); const number = Math.floor((start - firstSunday) / 604800000) + 1; const key = `${start.getFullYear()}-${String(number).padStart(2, '0')}`; return { key, number, start, end }; };
     const weekLabel = ({ number, start, end }) => `Semana ${number} · ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short' }).format(start)} - ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end)}`;
