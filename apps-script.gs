@@ -1,6 +1,6 @@
 const SHEET_NAME = 'Registros';
 const USERS_SHEET_NAME = 'Usuarios';
-const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message', 'cause', 'planAccion', 'laborType'];
+const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message', 'cause', 'planAccion', 'laborType', 'userKey', 'groupPerformance', 'groupQuality'];
 const USER_HEADERS = ['username', 'name', 'passwordHash', 'initialPassword', 'active'];
 const SESSION_TTL_SECONDS = 21600;
 const USER_NAMES = [
@@ -91,6 +91,55 @@ function canonicalNameFor(name) {
   return row ? String(row[1]) : String(name || '').trim();
 }
 
+function usernameForName(name) {
+  const sheet = getUsersSheet();
+  if (sheet.getLastRow() < 2) return '';
+  const row = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues().find((item) => samePerson(name, item[1]));
+  return row ? String(row[0]) : '';
+}
+
+function valueOrEmpty(value) {
+  return value === null || value === undefined ? '' : value;
+}
+
+function recordValues(record, groupPerformance, groupQuality) {
+  const owner = canonicalNameFor(record.owner);
+  return HEADERS.map((header) => {
+    if (header === 'owner') return owner;
+    if (header === 'userKey') return usernameForName(owner);
+    if (header === 'groupPerformance') return valueOrEmpty(groupPerformance);
+    if (header === 'groupQuality') return valueOrEmpty(groupQuality);
+    return valueOrEmpty(record[header]);
+  });
+}
+
+function repairExistingRecords() {
+  const sheet = getSheet();
+  if (sheet.getLastRow() < 2) return 'No hay registros para reparar.';
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues();
+  const productiveByDate = {};
+  rows.forEach((row) => {
+    const date = valueFor('date', row[0]);
+    if (!date || String(row[13] || '') === 'attendance') return;
+    if (!productiveByDate[date]) productiveByDate[date] = { performance: 0, quality: 0 };
+    productiveByDate[date].performance += Number(row[6] || 0);
+    productiveByDate[date].quality += Number(row[7] || 0);
+  });
+  const productiveBase = USER_NAMES.filter((name) => name !== 'Paola Ferreira').length;
+  const repaired = rows.map((row) => {
+    const date = valueFor('date', row[0]);
+    const totals = productiveByDate[date] || { performance: 0, quality: 0 };
+    row[2] = canonicalNameFor(row[2]);
+    row[13] = row[13] || 'productive';
+    row[14] = usernameForName(row[2]);
+    row[15] = (totals.performance / productiveBase).toFixed(2);
+    row[16] = (totals.quality / productiveBase).toFixed(2);
+    return row;
+  });
+  sheet.getRange(2, 1, repaired.length, HEADERS.length).setValues(repaired);
+  return `Registros reparados: ${repaired.length}.`;
+}
+
 function hashPassword(password) {
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(password), Utilities.Charset.UTF_8);
   return bytes.map((byte) => (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0')).join('');
@@ -102,7 +151,7 @@ function doGet(event) {
   if (!session) return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   const rows = sheet.getDataRange().getValues();
-  const records = rows.slice(1).map((row, rowIndex) => ({ id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) })).filter((record) => record.date && (session.role === 'admin' || samePerson(record.owner, session.name) || samePerson(record.owner, session.username)));
+  const records = rows.slice(1).map((row, rowIndex) => ({ id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) })).filter((record) => record.date && (session.role === 'admin' || record.userKey === session.username || samePerson(record.owner, session.name) || samePerson(record.owner, session.username)));
   return json(records);
 }
 
@@ -118,13 +167,16 @@ function doPost(event) {
   if (!session || session.role !== 'admin') return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   if (payload.action === 'save') {
-    sheet.appendRow(HEADERS.map((header) => payload.record[header] || ''));
+    sheet.appendRow(recordValues(payload.record, '', ''));
     return json({ ok: true, id: String(sheet.getLastRow()) });
   }
   else if (payload.action === 'bulkSave') {
     const records = Array.isArray(payload.records) ? payload.records : [];
     if (!records.length) return json({ ok: false, message: 'No se recibieron filas para cargar.' });
-    const rows = records.map((record) => HEADERS.map((header) => header === 'owner' ? canonicalNameFor(record[header]) : record[header] || ''));
+    const productiveRecords = records.filter((record) => record.laborType !== 'attendance');
+    const groupPerformance = productiveRecords.reduce((sum, record) => sum + Number(record.performance || 0), 0) / USER_NAMES.filter((name) => name !== 'Paola Ferreira').length;
+    const groupQuality = productiveRecords.reduce((sum, record) => sum + Number(record.quality || 0), 0) / USER_NAMES.filter((name) => name !== 'Paola Ferreira').length;
+    const rows = records.map((record) => recordValues(record, groupPerformance.toFixed(2), groupQuality.toFixed(2)));
     sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
     return json({ ok: true, count: rows.length });
   }

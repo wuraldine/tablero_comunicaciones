@@ -542,8 +542,9 @@
       const latest = summaryRecords.sort((a, b) => b.date.localeCompare(a.date))[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
       const groupAttendance = averageAgainstBase(summaryRecords, 'attendance');
-      const groupPerformance = averageAgainstBase(summaryRecords, 'performance');
-      const groupQuality = averageAgainstBase(summaryRecords, 'quality');
+      const persistedSummary = summaryRecords.find((record) => Number.isFinite(numeric(record.groupPerformance)) && Number.isFinite(numeric(record.groupQuality)));
+      const groupPerformance = persistedSummary ? numeric(persistedSummary.groupPerformance) : averageAgainstBase(summaryRecords, 'performance');
+      const groupQuality = persistedSummary ? numeric(persistedSummary.groupQuality) : averageAgainstBase(summaryRecords, 'quality');
       document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
       document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
       document.getElementById('metricPerformance').textContent = Number.isFinite(groupPerformance) ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(groupPerformance) : '—';
