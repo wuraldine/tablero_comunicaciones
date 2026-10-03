@@ -151,7 +151,11 @@ function doGet(event) {
   if (!session) return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   const rows = sheet.getDataRange().getValues();
-  const records = rows.slice(1).map((row, rowIndex) => ({ id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) })).filter((record) => record.date && (session.role === 'admin' || record.userKey === session.username || samePerson(record.owner, session.name) || samePerson(record.owner, session.username)));
+  const records = rows.slice(1).map((row, rowIndex) => {
+    const record = { id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) };
+    if (!record.userKey && record.owner && samePerson(record.owner, session.name)) record.userKey = session.username;
+    return record;
+  }).filter((record) => record.date && (session.role === 'admin' || record.userKey === session.username || samePerson(record.owner, session.name) || samePerson(record.owner, session.username)));
   return json(records);
 }
 
