@@ -1,6 +1,6 @@
 const SHEET_NAME = 'Registros';
 const USERS_SHEET_NAME = 'Usuarios';
-const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message', 'cause', 'planAccion'];
+const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message', 'cause', 'planAccion', 'laborType'];
 const USER_HEADERS = ['username', 'name', 'passwordHash', 'initialPassword', 'active'];
 const SESSION_TTL_SECONDS = 21600;
 const USER_NAMES = [
@@ -78,6 +78,19 @@ function normalize(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
+function samePerson(firstName, secondName) {
+  const firstTokens = normalize(firstName).split(/[^a-z0-9]+/).filter(Boolean);
+  const secondTokens = normalize(secondName).split(/[^a-z0-9]+/).filter(Boolean);
+  return firstTokens.length > 0 && secondTokens.length > 0 && firstTokens.every((token) => secondTokens.includes(token));
+}
+
+function canonicalNameFor(name) {
+  const sheet = getUsersSheet();
+  if (sheet.getLastRow() < 2) return String(name || '').trim();
+  const row = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues().find((item) => samePerson(name, item[1]));
+  return row ? String(row[1]) : String(name || '').trim();
+}
+
 function hashPassword(password) {
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(password), Utilities.Charset.UTF_8);
   return bytes.map((byte) => (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0')).join('');
@@ -89,7 +102,7 @@ function doGet(event) {
   if (!session) return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   const rows = sheet.getDataRange().getValues();
-  const records = rows.slice(1).map((row, rowIndex) => ({ id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) })).filter((record) => record.date && (session.role === 'admin' || normalize(record.owner) === normalize(session.name)));
+  const records = rows.slice(1).map((row, rowIndex) => ({ id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) })).filter((record) => record.date && (session.role === 'admin' || samePerson(record.owner, session.name) || samePerson(record.owner, session.username)));
   return json(records);
 }
 
@@ -111,7 +124,7 @@ function doPost(event) {
   else if (payload.action === 'bulkSave') {
     const records = Array.isArray(payload.records) ? payload.records : [];
     if (!records.length) return json({ ok: false, message: 'No se recibieron filas para cargar.' });
-    const rows = records.map((record) => HEADERS.map((header) => record[header] || ''));
+    const rows = records.map((record) => HEADERS.map((header) => header === 'owner' ? canonicalNameFor(record[header]) : record[header] || ''));
     sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
     return json({ ok: true, count: rows.length });
   }

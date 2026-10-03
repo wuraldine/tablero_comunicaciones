@@ -99,6 +99,7 @@
     .bulk-table td:first-child { min-width: 170px; font: 13px Arial, sans-serif; font-weight: 700; }
     .bulk-table input, .bulk-table select { min-width: 92px; padding: 7px 6px; font: 13px Arial, sans-serif; }
     .attendance-result { display: block; margin-top: 3px; color: #203867; font: 700 11px Arial, sans-serif; }
+    .attendance-only-label { color: var(--muted); font: 11px Arial, sans-serif; }
     .bulk-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
     @media (max-width: 900px) {
       .bulk-table-wrap { overflow: visible; border: 0; background: transparent; }
@@ -173,7 +174,11 @@
     .eyebrow { color: #fff; font-size: 17px; letter-spacing: .02em; text-transform: uppercase; }
     h1 { margin: 3px 0 0; color: #fff; font-size: 25px; font-weight: 700; letter-spacing: 0; }
     .subtitle { margin-top: 3px; color: #cbd6ea; font: 13px Arial, sans-serif; }
-    .date-box { display: none; }
+    .date-box { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0; min-width: 0; border: 0; background: transparent; }
+    .date-box > span, .date-box > strong, .clear-filter { display: none; }
+    .date-filter { display: flex; align-items: center; gap: 8px; margin: 0; color: #cbd6ea; font: 11px Arial, sans-serif; }
+    .date-filter > span { display: inline; color: #cbd6ea; font: 700 10px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .date-filter input { width: 145px; padding: 9px 10px; border: 0; border-radius: 7px; color: #203867; background: #fff; font: 13px Arial, sans-serif; }
     .top-action { top: 16px; right: 22px; padding: 11px 16px; border-radius: 9px; color: #203867; background: #fff; font-size: 12px; letter-spacing: 0; text-transform: none; }
     .top-action:hover { color: #203867; background: #f5f7fb; }
     .view-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 18px; padding: 4px; background: #e3e8f2; border-radius: 11px; }
@@ -193,7 +198,7 @@
     .content-grid { margin-top: 22px; }
     .panel { border-radius: 12px; box-shadow: 0 4px 13px rgba(32, 56, 103, .06); }
     .history { border-radius: 12px; }
-    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
+    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .date-box { display: block; margin-top: 8px; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .section-heading { margin-top: 24px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
 <body>
@@ -252,7 +257,7 @@
             <div class="action-preview empty" id="actionPreview"><h4>Plan de acción sugerido</h4><p id="actionPreviewText">Completá los indicadores para recibir una propuesta.</p></div>
             <div class="bulk-upload">
               <h4>Carga masiva de información grupal</h4>
-              <p>Elegí una fecha. La jornada esperada se calcula automáticamente según el día; solo modifica las horas reales de quienes no cumplieron.</p>
+              <p>Elegí una fecha. La jornada esperada se calcula automáticamente según el día; solo modifica las horas reales de quienes no cumplieron. Las 4 filas de otras labores cuentan para presentismo, pero no para rendimiento ni calidad.</p>
               <div class="bulk-settings"><label>Fecha de carga<input id="bulkDate" type="date" required></label><label>Jornada esperada<input id="shiftHours" type="text" value="6,25 horas" readonly aria-readonly="true"></label></div>
               <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Horas trabajadas</th><th>Presentismo % automático</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
@@ -288,6 +293,7 @@
     const sessionKey = 'tablero-comunicaciones-session';
     const groupName = 'Grupo de cosecha de Nay';
     const collaboratorNames = ['Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo', 'Ronald Cardoza', 'Angela Chacin', 'Yeinys Contreras', 'Adriana De Avila', 'Fernanda Gallego', 'Jaiber Galvan', 'Claudia Garcia', 'Carolina Gonzalez', 'Libardo Grisales', 'Mario Hernandez', 'Geraldine Lopez', 'Yiseth Medina', 'Danilson Mendoza', 'Alba Muñoz', 'Fanelis Narvaez', 'Sophia Pacheco', 'Margara Piedrahita', 'Carolina Sanchez', 'Yurianys Serna', 'Rosa Serna', 'Adelmo Urariyu', 'Yeisly Valladares', 'Natalia Amariles', 'Vergara Solanyi'];
+    const otherLaborLabels = ['Otra labor 1', 'Otra labor 2', 'Otra labor 3', 'Otra labor 4'];
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
     let sessionRole = sessionStorage.getItem(`${sessionKey}-role`) || '';
     let sessionName = sessionStorage.getItem(`${sessionKey}-name`) || '';
@@ -353,7 +359,9 @@
       document.getElementById('bulkDate').value = today.toISOString().slice(0, 10);
       const scheduledHours = scheduledHoursForDate(document.getElementById('bulkDate').value);
       document.getElementById('shiftHours').value = scheduledHours ? `${scheduledHours.toString().replace('.', ',')} horas` : 'Sin jornada';
-      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      const productiveRows = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}" data-labor-type="productive"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      const otherLaborRows = otherLaborLabels.map((label, index) => `<tr data-bulk-row="other-${index}" data-labor-type="attendance"><td><input data-field="owner" type="text" value="${label}" aria-label="Nombre de otra labor"></td><td><span class="attendance-only-label">Solo presentismo</span></td><td><span class="attendance-only-label">No aplica</span></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      document.getElementById('bulkTableBody').innerHTML = `${productiveRows}${otherLaborRows}`;
       updateAllAttendancePercents();
     };
     const scheduledHoursForDate = (value) => {
@@ -384,13 +392,21 @@
       if (!Number.isFinite(shiftHours) || shiftHours <= 0) throw new Error('El domingo no tiene una jornada configurada. Elegí lunes, martes, miércoles, jueves, viernes o sábado.');
       document.querySelectorAll('[data-bulk-row]').forEach((row) => {
         const value = (field) => row.querySelector(`[data-field="${field}"]`).value.trim();
-        const performance = value('performance');
-        const quality = value('quality');
+        const isAttendanceOnly = row.dataset.laborType === 'attendance';
+        let performance = isAttendanceOnly ? '' : value('performance');
+        let quality = isAttendanceOnly ? '' : value('quality');
         const attendanceHours = Number.parseFloat(value('attendanceHours'));
-        if (!performance && !quality) return;
-        if (!performance || !quality) throw new Error(`Completá rendimiento y calidad para ${row.firstElementChild.textContent}.`);
+        if (!Number.isFinite(attendanceHours)) return;
+        if (attendanceHours === 0) {
+          performance = '0';
+          quality = '0';
+        } else if (!isAttendanceOnly && (!performance || !quality)) {
+          throw new Error(`Completá rendimiento y calidad para ${row.firstElementChild.textContent}.`);
+        }
         const attendance = Number.isFinite(attendanceHours) ? Math.min(100, (attendanceHours / shiftHours) * 100).toFixed(2) : '';
-        records.push({ date, team: groupName, owner: row.firstElementChild.textContent, safety: '', attendance, base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '' });
+        const owner = isAttendanceOnly ? value('owner') : row.firstElementChild.textContent.trim();
+        if (!owner) throw new Error('Completá el nombre de cada persona de otras labores.');
+        records.push({ date, team: groupName, owner, safety: '', attendance, base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '', laborType: isAttendanceOnly ? 'attendance' : 'productive' });
       });
       if (!records.length) throw new Error('Completá al menos una fila antes de subir la tabla.');
       return records;
@@ -406,6 +422,13 @@
     const averageOf = (records, field, includeRecord = () => true) => {
       const values = records.filter(includeRecord).map((record) => numeric(record[field])).filter(Number.isFinite);
       return values.length ? values.reduce((total, value) => total + value, 0) / values.length : NaN;
+    };
+    const averageAgainstBase = (records, field) => {
+      if (!records.length) return NaN;
+      const total = records.reduce((sum, record) => sum + (Number.isFinite(numeric(record[field])) ? numeric(record[field]) : 0), 0);
+      const baseCount = field === 'attendance' ? collaboratorNames.length + otherLaborLabels.length : collaboratorNames.length;
+      const denominator = sessionRole === 'admin' ? baseCount : records.length;
+      return denominator ? total / denominator : NaN;
     };
     const actionPlanFor = (record) => {
       const actions = [];
@@ -462,10 +485,9 @@
       document.getElementById('todayLabel').textContent = dateFilter.value ? dateLabel.format(new Date(`${dateFilter.value}T12:00:00`)) : 'Todas las jornadas';
       const latest = summaryRecords.sort((a, b) => b.date.localeCompare(a.date))[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
-      const groupAttendance = averageOf(summaryRecords, 'attendance');
-      const presentRecords = summaryRecords.filter((record) => percentNumber(record.attendance) > 0);
-      const groupPerformance = averageOf(presentRecords, 'performance');
-      const groupQuality = averageOf(presentRecords, 'quality');
+      const groupAttendance = averageAgainstBase(summaryRecords, 'attendance');
+      const groupPerformance = averageAgainstBase(summaryRecords, 'performance');
+      const groupQuality = averageAgainstBase(summaryRecords, 'quality');
       document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
       document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
       document.getElementById('metricPerformance').textContent = Number.isFinite(groupPerformance) ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(groupPerformance) : '—';
