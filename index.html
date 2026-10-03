@@ -251,8 +251,8 @@
             <div class="action-preview empty" id="actionPreview"><h4>Plan de acción sugerido</h4><p id="actionPreviewText">Completá los indicadores para recibir una propuesta.</p></div>
             <div class="bulk-upload">
               <h4>Carga masiva de información grupal</h4>
-              <p>Elegí una fecha y la jornada esperada. Esa fecha se aplicará a todas las filas que subas.</p>
-              <div class="bulk-settings"><label>Fecha de carga<input id="bulkDate" type="date" required></label><label>Horas de jornada<input id="shiftHours" type="number" min="1" max="24" step="0.5" value="8" required></label></div>
+              <p>Elegí una fecha. La jornada esperada se calcula automáticamente según el día; solo modifica las horas reales de quienes no cumplieron.</p>
+              <div class="bulk-settings"><label>Fecha de carga<input id="bulkDate" type="date" required></label><label>Jornada esperada<input id="shiftHours" type="text" value="6,25 horas" readonly aria-readonly="true"></label></div>
               <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Horas presentismo</th><th>Presentismo %</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
@@ -350,11 +350,26 @@
     };
     const renderBulkTable = () => {
       document.getElementById('bulkDate').value = today.toISOString().slice(0, 10);
-      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.5" placeholder="8"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      const scheduledHours = scheduledHoursForDate(document.getElementById('bulkDate').value);
+      document.getElementById('shiftHours').value = scheduledHours ? `${scheduledHours.toString().replace('.', ',')} horas` : 'Sin jornada';
+      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      updateAllAttendancePercents();
+    };
+    const scheduledHoursForDate = (value) => {
+      if (!value) return NaN;
+      const day = new Date(`${value}T12:00:00`).getDay();
+      if ([1, 5, 6].includes(day)) return 6.25;
+      if ([2, 3, 4].includes(day)) return 7.75;
+      return 0;
+    };
+    const updateShiftHours = () => {
+      const hours = scheduledHoursForDate(document.getElementById('bulkDate').value);
+      document.getElementById('shiftHours').value = hours ? `${hours.toString().replace('.', ',')} horas` : 'Sin jornada';
+      updateAllAttendancePercents();
     };
     const updateAttendancePercent = (row) => {
       const hours = Number.parseFloat(row.querySelector('[data-field="attendanceHours"]').value);
-      const shiftHours = Number.parseFloat(document.getElementById('shiftHours').value);
+      const shiftHours = scheduledHoursForDate(document.getElementById('bulkDate').value);
       const output = row.querySelector('[data-field="attendancePercent"]');
       output.textContent = Number.isFinite(hours) && shiftHours > 0 ? `${Math.min(100, (hours / shiftHours) * 100).toFixed(2)}%` : '—';
     };
@@ -362,9 +377,9 @@
     const collectBulkRows = () => {
       const records = [];
       const date = document.getElementById('bulkDate').value;
-      const shiftHours = Number.parseFloat(document.getElementById('shiftHours').value);
+      const shiftHours = scheduledHoursForDate(date);
       if (!date) throw new Error('Elegí la fecha que tendrán los registros.');
-      if (!Number.isFinite(shiftHours) || shiftHours <= 0) throw new Error('Ingresá una cantidad válida de horas de jornada.');
+      if (!Number.isFinite(shiftHours) || shiftHours <= 0) throw new Error('El domingo no tiene una jornada configurada. Elegí lunes, martes, miércoles, jueves, viernes o sábado.');
       document.querySelectorAll('[data-bulk-row]').forEach((row) => {
         const value = (field) => row.querySelector(`[data-field="${field}"]`).value.trim();
         const performance = value('performance');
@@ -441,7 +456,9 @@
       document.getElementById('todayLabel').textContent = dateFilter.value ? dateLabel.format(new Date(`${dateFilter.value}T12:00:00`)) : 'Todas las jornadas';
       const latest = summaryRecords.sort((a, b) => b.date.localeCompare(a.date))[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
-      document.getElementById('metricAttendance').textContent = latest ? percentage(latest.attendance) : '—';
+      const attendanceValues = summaryRecords.map((record) => percentNumber(record.attendance)).filter(Number.isFinite);
+      const groupAttendance = attendanceValues.length ? attendanceValues.reduce((total, value) => total + value, 0) / attendanceValues.length : NaN;
+      document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
       document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
       document.getElementById('metricPerformance').textContent = latest?.performance || '—';
       document.getElementById('metricQuality').textContent = latest ? percentage(latest.quality) : '—';
@@ -471,7 +488,7 @@
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
     form.addEventListener('input', updateActionPreview);
     document.getElementById('bulkTableBody').addEventListener('input', (event) => { if (event.target.matches('[data-field="attendanceHours"]')) updateAttendancePercent(event.target.closest('[data-bulk-row]')); });
-    document.getElementById('shiftHours').addEventListener('input', updateAllAttendancePercents);
+    document.getElementById('bulkDate').addEventListener('change', updateShiftHours);
     document.getElementById('bulkUploadButton').addEventListener('click', async () => {
       const button = document.getElementById('bulkUploadButton');
       const message = document.getElementById('bulkUploadMessage');
