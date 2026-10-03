@@ -538,13 +538,15 @@
       populateWeekFilter(records);
       const latestDate = records.reduce((latest, record) => record.date > latest ? record.date : latest, '');
       const selectedDate = dateFilter.value || latestDate;
-      const summaryRecords = latestByOwner(records.filter((record) => record.date === selectedDate));
+      const selectedDayRecords = records.filter((record) => record.date === selectedDate);
+      const groupRecord = selectedDayRecords.find((record) => record.laborType === 'group');
+      const summaryRecords = latestByOwner(selectedDayRecords.filter((record) => record.laborType !== 'group' && record.owner));
       const historyRecords = records.filter((record) => !weekFilter.value || weekInfo(record.date).key === weekFilter.value);
       document.getElementById('todayLabel').textContent = selectedDate ? dateLabel.format(new Date(`${selectedDate}T12:00:00`)) : 'Sin registros';
-      const latest = summaryRecords.sort((a, b) => b.date.localeCompare(a.date))[0];
+      const latest = summaryRecords[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
       const groupAttendance = averageAgainstBase(summaryRecords, 'attendance');
-      const persistedSummary = summaryRecords.find((record) => Number.isFinite(numeric(record.groupPerformance)) && Number.isFinite(numeric(record.groupQuality)));
+      const persistedSummary = groupRecord || summaryRecords.find((record) => Number.isFinite(numeric(record.groupPerformance)) && Number.isFinite(numeric(record.groupQuality)));
       const groupPerformance = persistedSummary ? numeric(persistedSummary.groupPerformance) : averageAgainstBase(summaryRecords, 'performance');
       const groupQuality = persistedSummary ? numeric(persistedSummary.groupQuality) : averageAgainstBase(summaryRecords, 'quality');
       document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
