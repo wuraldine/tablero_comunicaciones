@@ -138,6 +138,13 @@
     .login-card { width: min(100%, 480px); padding: 22px; background: var(--white); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(16, 42, 67, .22); }
     .login-card-head { display: flex; justify-content: space-between; align-items: start; gap: 15px; margin-bottom: 16px; }
     .login-card-head h3 { margin: 0; font-size: 21px; font-weight: 400; }
+    .access-gate { min-height: 100vh; display: grid; place-items: center; padding: 20px; background: #eef2f8; }
+    .access-gate[hidden] { display: none; }
+    .access-card { width: min(100%, 430px); padding: 28px; border: 1px solid #dbe2ee; border-radius: 14px; background: #fff; box-shadow: 0 18px 45px rgba(32, 56, 103, .12); }
+    .access-card h1 { margin: 0; color: #203867; font: 700 25px Arial, sans-serif; }
+    .access-card p { margin: 8px 0 22px; color: #70809b; font: 14px Arial, sans-serif; line-height: 1.45; }
+    .access-card label { margin-bottom: 13px; }
+    .access-message { min-height: 18px; margin: 12px 0 0; color: var(--red); font: 12px Arial, sans-serif; }
     .close-login { cursor: pointer; border: 0; color: var(--muted); background: transparent; font: 24px Arial, sans-serif; line-height: 1; }
     .close-login:hover { color: var(--navy); }
     [hidden] { display: none !important; }
@@ -206,7 +213,19 @@
   </style>
 </head>
 <body>
-  <div class="app-shell">
+  <section class="access-gate" id="accessGate">
+    <div class="access-card">
+      <h1>Rendimiento grupal</h1>
+      <p>Iniciá sesión para consultar los resultados del grupo o tu resultado individual.</p>
+      <form id="accessLoginForm">
+        <label>Usuario<input id="accessUsername" type="text" autocomplete="username" required></label>
+        <label>Contraseña<input id="accessPassword" type="password" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Iniciar sesión</button>
+        <p class="access-message" id="accessMessage" role="alert"></p>
+      </form>
+    </div>
+  </section>
+  <div class="app-shell" id="appShell" hidden>
     <aside>
       <div class="brand"><div class="brand-mark">TC</div><div><div class="brand-name">Tablero<br>comunicaciones</div><small>Gestión diaria</small></div></div>
       <div class="side-label">Espacios de trabajo</div>
@@ -288,6 +307,10 @@
     const apiUrl = 'https://script.google.com/macros/s/AKfycbzp8GGnt7Ry6VxB3AAdiOuW10B413scdwOspyNpAHjLxHzl06xMCggm4xvp0Ji6rrW87A/exec';
     const form = document.getElementById('entryForm');
     const loginForm = document.getElementById('loginForm');
+    const accessGate = document.getElementById('accessGate');
+    const appShell = document.getElementById('appShell');
+    const accessLoginForm = document.getElementById('accessLoginForm');
+    const accessMessage = document.getElementById('accessMessage');
     const adminGate = document.getElementById('adminGate');
     const loginMessage = document.getElementById('loginMessage');
     const loginTrigger = document.getElementById('loginTrigger');
@@ -296,7 +319,7 @@
     const sessionKey = 'tablero-comunicaciones-session';
     const groupName = 'Grupo de cosecha de Nay';
     const collaboratorNames = ['Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo', 'Ronald Cardoza', 'Angela Chacin', 'Yeinys Contreras', 'Adriana De Avila', 'Fernanda Gallego', 'Jaiber Galvan', 'Claudia Garcia', 'Carolina Gonzalez', 'Libardo Grisales', 'Mario Hernandez', 'Geraldine Lopez', 'Yiseth Medina', 'Danilson Mendoza', 'Alba Muñoz', 'Fanelis Narvaez', 'Sophia Pacheco', 'Margara Piedrahita', 'Carolina Sanchez', 'Yurianys Serna', 'Rosa Serna', 'Adelmo Urariyu', 'Yeisly Valladares', 'Natalia Amariles', 'Vergara Solanyi'];
-    const otherLaborLabels = ['Otra labor 1', 'Otra labor 2', 'Otra labor 3', 'Otra labor 4'];
+    const otherLaborLabels = ['Bernardo Martínez', 'Omaira Castro', 'Mery Zuluaga', 'Julián Valencia'];
     let sessionToken = sessionStorage.getItem(sessionKey) || '';
     let sessionRole = sessionStorage.getItem(`${sessionKey}-role`) || '';
     let sessionName = sessionStorage.getItem(`${sessionKey}-name`) || '';
@@ -313,6 +336,7 @@
 
     const getRecords = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
     const setRecords = (records) => localStorage.setItem(storageKey, JSON.stringify(records));
+    const setAppAccess = (isAuthenticated) => { accessGate.hidden = isAuthenticated; appShell.hidden = !isAuthenticated; };
     const setEditorState = (session) => {
       const connected = Boolean(apiUrl);
       const isAuthenticated = Boolean(sessionToken && session);
@@ -328,6 +352,27 @@
       const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       if (!response.ok) throw new Error(`El servidor respondió con error ${response.status}.`);
       return response.json();
+    };
+    const authenticate = async (username, password, messageElement, formToReset, button) => {
+      messageElement.textContent = '';
+      try {
+        const result = await postToApi({ action: 'login', username, password });
+        if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.');
+        sessionToken = result.token;
+        sessionRole = result.role || 'user';
+        sessionName = result.name || username;
+        sessionStorage.setItem(sessionKey, sessionToken);
+        sessionStorage.setItem(`${sessionKey}-role`, sessionRole);
+        sessionStorage.setItem(`${sessionKey}-name`, sessionName);
+        formToReset.reset();
+        setAppAccess(true);
+        setEditorState({ role: sessionRole, name: sessionName });
+        render(await loadRecords());
+      } catch (error) {
+        messageElement.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
     };
     const loadRecords = async () => {
       if (!apiUrl || !sessionToken) return [];
@@ -356,7 +401,7 @@
     const deleteRecord = async (id) => {
       const result = await postToApi({ action: 'delete', token: sessionToken, id });
       if (!result.ok) throw new Error(result.message || 'No se pudo borrar el registro.');
-      setRecords(getRecords().filter((item) => item.id !== id));
+      setRecoquirds(getRecords().filter((item) => item.id !== id));
     };
     const renderBulkTable = () => {
       document.getElementById('bulkDate').value = today.toISOString().slice(0, 10);
@@ -522,10 +567,11 @@
     viewTabs.forEach((tab) => tab.addEventListener('click', () => { viewTabs.forEach((item) => item.classList.remove('active')); tab.classList.add('active'); }));
     const openLogin = (event) => { event.preventDefault(); if (sessionToken) { logoutButton.click(); return; } if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
     loginTrigger.addEventListener('click', openLogin);
+    accessLoginForm.addEventListener('submit', (event) => { event.preventDefault(); const button = accessLoginForm.querySelector('button[type="submit"]'); button.disabled = true; authenticate(document.getElementById('accessUsername').value, document.getElementById('accessPassword').value, accessMessage, accessLoginForm, button); });
     closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
     adminGate.addEventListener('click', (event) => { if (event.target === adminGate) adminGate.hidden = true; });
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionRole = result.role || 'admin'; sessionName = result.name || 'Administrador'; sessionStorage.setItem(sessionKey, sessionToken); sessionStorage.setItem(`${sessionKey}-role`, sessionRole); sessionStorage.setItem(`${sessionKey}-name`, sessionName); loginForm.reset(); setEditorState({ role: sessionRole, name: sessionName }); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
-    logoutButton.addEventListener('click', () => { sessionToken = ''; sessionRole = ''; sessionName = ''; sessionStorage.removeItem(sessionKey); sessionStorage.removeItem(`${sessionKey}-role`); sessionStorage.removeItem(`${sessionKey}-name`); setEditorState(null); render([]); });
+    logoutButton.addEventListener('click', () => { sessionToken = ''; sessionRole = ''; sessionName = ''; sessionStorage.removeItem(sessionKey); sessionStorage.removeItem(`${sessionKey}-role`); sessionStorage.removeItem(`${sessionKey}-name`); setEditorState(null); setAppAccess(false); render([]); });
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
     form.addEventListener('input', updateActionPreview);
     document.getElementById('bulkTableBody').addEventListener('input', (event) => { if (event.target.matches('[data-field="attendanceHours"]')) updateAttendancePercent(event.target.closest('[data-bulk-row]')); });
@@ -549,8 +595,7 @@
     });
     form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = { ...Object.fromEntries(new FormData(form).entries()), team: groupName }; button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
     renderBulkTable();
-    setEditorState(sessionToken && apiUrl ? { role: sessionRole, name: sessionName } : null);
-    loadRecords().then(render);
+    if (sessionToken && apiUrl) { setAppAccess(true); setEditorState({ role: sessionRole, name: sessionName }); loadRecords().then(render); } else { setAppAccess(false); }
   </script>
 </body>
 </html>
