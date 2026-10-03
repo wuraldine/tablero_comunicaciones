@@ -220,7 +220,7 @@
       <p>Iniciá sesión para consultar los resultados del grupo o tu resultado individual.</p>
       <form id="accessLoginForm">
         <label>Usuario<input id="accessUsername" type="text" autocomplete="username" required></label>
-        <label>Contraseña<input id="accessPassword" type="password" autocomplete="current-password" required></label>
+        <label>PIN<input id="accessPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" placeholder="4 dígitos" required></label>
         <button class="primary" type="submit">Iniciar sesión</button>
         <p class="access-message" id="accessMessage" role="alert"></p>
       </form>
@@ -261,7 +261,7 @@
           <div class="panel-head"><h3>Cargar comunicación diaria</h3><span id="accessLabel">Acceso privado</span></div>
           <div class="login login-modal" id="adminGate" hidden>
             <div class="login-card"><div class="login-card-head"><div><h3>Iniciar sesión</h3><p class="login-copy">Ingresá para consultar tus indicadores o administrar la información.</p></div><button class="close-login" id="closeLoginButton" type="button" aria-label="Cerrar">×</button></div>
-            <form id="loginForm"><div class="login-grid"><label>Usuario<input id="loginUsername" type="text" placeholder="Escribí tu usuario" autocomplete="username" required></label><label>Contraseña<input id="loginPassword" type="password" placeholder="Escribí tu contraseña" autocomplete="current-password" required></label><button class="primary" type="submit">Ingresar</button></div><p class="login-message" id="loginMessage" role="alert"></p></form></div>
+            <form id="loginForm"><div class="login-grid"><label>Usuario<input id="loginUsername" type="text" placeholder="Escribí tu usuario" autocomplete="username" required></label><label>PIN<input id="loginPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="4 dígitos" autocomplete="current-password" required></label><button class="primary" type="submit">Ingresar</button></div><p class="login-message" id="loginMessage" role="alert"></p></form></div>
           </div>
           <form class="entry-form" id="entryForm" hidden>
             <div class="form-grid">

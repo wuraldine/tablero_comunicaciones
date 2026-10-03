@@ -216,7 +216,7 @@ function login(payload) {
 }
 
 function findUser(username, password) {
-  if (!username || !password) return null;
+  if (!username || !/^\d{4}$/.test(String(password).trim())) return null;
   const sheet = getUsersSheet();
   if (sheet.getLastRow() < 2) return null;
   const normalizedUsername = String(username).trim().toLowerCase();
