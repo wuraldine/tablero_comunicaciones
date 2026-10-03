@@ -73,6 +73,7 @@
     .panel-head span { color: var(--muted); font: 11px Arial, sans-serif; }
     .entry-form { padding: 20px; }
     .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .manual-indicator { display: none; }
     label { color: var(--muted); display: grid; gap: 7px; font: 11px Arial, sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
     .field-hint { color: var(--muted); font: 10px Arial, sans-serif; font-weight: 400; letter-spacing: 0; text-transform: none; }
     input, select, textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 0; outline: none; color: var(--ink); background: #fbfcfe; font: 15px Georgia, serif; }
@@ -239,10 +240,10 @@
               <label>Fecha<input id="date" name="date" type="date" required></label>
               <label>Responsable<input id="owner" name="owner" type="text" placeholder="Nombre del referente" required></label>
               <label>Seguridad<select id="safety" name="safety"><option value="0 accidentes">0 accidentes</option><option value="1 accidente">1 accidente</option><option value="2+ accidentes">2+ accidentes</option></select></label>
-              <label>Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
+              <label class="manual-indicator">Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97"><span class="field-hint">Se calcula automáticamente desde las horas de la tabla.</span></label>
               <label>Base estable<input id="base" name="base" type="number" min="0" max="100" step="0.01" placeholder="Ej. 100" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
-              <label>Rendimiento<input id="performance" name="performance" type="number" min="0" step="0.01" placeholder="Ej. 1600" required><span class="field-hint">Ingresá solo el número.</span></label>
-              <label>Calidad<input id="quality" name="quality" type="number" min="0" max="100" step="0.01" placeholder="Ej. 92" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
+              <label class="manual-indicator">Rendimiento<input id="performance" name="performance" type="number" min="0" step="0.01" placeholder="Ej. 1600"><span class="field-hint">Se calcula como promedio de las personas presentes.</span></label>
+              <label class="manual-indicator">Calidad<input id="quality" name="quality" type="number" min="0" max="100" step="0.01" placeholder="Ej. 92"><span class="field-hint">Se calcula como promedio de las personas presentes.</span></label>
               <label>Costos<input id="cost" name="cost" type="number" min="0" max="100" step="0.01" placeholder="Ej. 100" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label class="full">Frase motivadora<textarea id="motivation" name="motivation" placeholder="Ej. Juntos hacemos que cada jornada cuente." required></textarea></label>
               <label class="full">Hallazgo / mensaje del día<textarea id="message" name="message" placeholder="¿Qué necesitamos conversar con el grupo?"></textarea></label>
@@ -402,6 +403,10 @@
     const numeric = (value) => Number.parseFloat(String(value).replace(',', '.').replace('%', ''));
     const percentNumber = (value) => { const number = numeric(value); return Number.isFinite(number) ? (number > 0 && number <= 1 ? number * 100 : number) : NaN; };
     const percentage = (value) => { const number = percentNumber(value); return Number.isFinite(number) ? `${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(number)}%` : '—'; };
+    const averageOf = (records, field, includeRecord = () => true) => {
+      const values = records.filter(includeRecord).map((record) => numeric(record[field])).filter(Number.isFinite);
+      return values.length ? values.reduce((total, value) => total + value, 0) / values.length : NaN;
+    };
     const actionPlanFor = (record) => {
       const actions = [];
       const cause = String(record.cause || '').trim();
@@ -457,12 +462,14 @@
       document.getElementById('todayLabel').textContent = dateFilter.value ? dateLabel.format(new Date(`${dateFilter.value}T12:00:00`)) : 'Todas las jornadas';
       const latest = summaryRecords.sort((a, b) => b.date.localeCompare(a.date))[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
-      const attendanceValues = summaryRecords.map((record) => percentNumber(record.attendance)).filter(Number.isFinite);
-      const groupAttendance = attendanceValues.length ? attendanceValues.reduce((total, value) => total + value, 0) / attendanceValues.length : NaN;
+      const groupAttendance = averageOf(summaryRecords, 'attendance');
+      const presentRecords = summaryRecords.filter((record) => percentNumber(record.attendance) > 0);
+      const groupPerformance = averageOf(presentRecords, 'performance');
+      const groupQuality = averageOf(presentRecords, 'quality');
       document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
       document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
-      document.getElementById('metricPerformance').textContent = latest?.performance || '—';
-      document.getElementById('metricQuality').textContent = latest ? percentage(latest.quality) : '—';
+      document.getElementById('metricPerformance').textContent = Number.isFinite(groupPerformance) ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(groupPerformance) : '—';
+      document.getElementById('metricQuality').textContent = Number.isFinite(groupQuality) ? percentage(groupQuality) : '—';
       document.getElementById('metricCost').textContent = latest ? percentage(latest.cost) : '—';
       document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
       renderFeedback(latest || {});
