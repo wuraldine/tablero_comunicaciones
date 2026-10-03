@@ -185,6 +185,10 @@
     .view-tabs a { padding: 11px 8px; color: #52627d; text-align: center; text-decoration: none; font: 700 13px Arial, sans-serif; border-radius: 8px; }
     .view-tabs a:hover, .view-tabs a.active { color: #fff; background: #203867; }
     .section-heading { margin: 24px 0 12px; }
+    .section-heading-tools { display: flex; align-items: center; gap: 16px; }
+    .section-heading-tools .date-box { display: flex; }
+    .section-heading-tools .date-filter > span { color: #70809b; }
+    .section-heading-tools .date-filter input { border: 1px solid #dbe2ee; color: #203867; }
     h2 { font-family: Arial, sans-serif; font-weight: 700; }
     .section-note { color: #70809b; }
     .metrics { gap: 12px; }
@@ -198,7 +202,7 @@
     .content-grid { margin-top: 22px; }
     .panel { border-radius: 12px; box-shadow: 0 4px 13px rgba(32, 56, 103, .06); }
     .history { border-radius: 12px; }
-    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .date-box { display: block; margin-top: 8px; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .section-heading { margin-top: 24px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
+    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .section-heading-tools { align-items: flex-end; gap: 8px; } .section-heading-tools .section-note { display: none; } .section-heading-tools .date-box { display: block; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
 <body>
@@ -215,12 +219,11 @@
     <main>
       <header class="topline" id="resumen">
         <div><div class="eyebrow">Grupo de cosecha</div><h1>Rendimiento grupal</h1><p class="subtitle">Resultados diarios de rendimiento y calidad</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión</a></div>
-        <div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Todas las jornadas</strong><label class="date-filter"><span>Filtrar por fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div>
       </header>
       <nav class="view-tabs" aria-label="Vistas del tablero"><a class="active" href="#metrics-title">Rendimiento</a><a href="#metrics-title">Calidad</a><a href="#history-title">Historial</a><a href="#feedbackTitle">Mi resultado</a></nav>
 
       <section aria-labelledby="metrics-title">
-        <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><span class="section-note">Último registro disponible</span></div>
+        <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><div class="section-heading-tools"><span class="section-note">Último registro disponible</span><div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Último día</strong><label class="date-filter"><span>Filtrar fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div></div></div>
         <div class="metrics">
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 accidentes</div></article>
           <article class="metric metric-attendance"><div class="metric-label">Presentismo grupal <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Promedio automático · objetivo ≥ 97%</div></article>
@@ -430,6 +433,12 @@
       const denominator = sessionRole === 'admin' ? baseCount : records.length;
       return denominator ? total / denominator : NaN;
     };
+    const latestByOwner = (records) => {
+      const latest = new Map();
+      records.forEach((record) => latest.set(normalizeClient(record.owner), record));
+      return [...latest.values()];
+    };
+    const normalizeClient = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
     const actionPlanFor = (record) => {
       const actions = [];
       const cause = String(record.cause || '').trim();
@@ -480,9 +489,11 @@
     };
     const render = (records = getRecords()) => {
       populateWeekFilter(records);
-      const summaryRecords = records.filter((record) => !dateFilter.value || record.date === dateFilter.value);
+      const latestDate = records.reduce((latest, record) => record.date > latest ? record.date : latest, '');
+      const selectedDate = dateFilter.value || latestDate;
+      const summaryRecords = latestByOwner(records.filter((record) => record.date === selectedDate));
       const historyRecords = records.filter((record) => !weekFilter.value || weekInfo(record.date).key === weekFilter.value);
-      document.getElementById('todayLabel').textContent = dateFilter.value ? dateLabel.format(new Date(`${dateFilter.value}T12:00:00`)) : 'Todas las jornadas';
+      document.getElementById('todayLabel').textContent = selectedDate ? dateLabel.format(new Date(`${selectedDate}T12:00:00`)) : 'Sin registros';
       const latest = summaryRecords.sort((a, b) => b.date.localeCompare(a.date))[0];
       document.getElementById('metricSafety').textContent = latest?.safety || '—';
       const groupAttendance = averageAgainstBase(summaryRecords, 'attendance');
