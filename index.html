@@ -217,7 +217,7 @@
         <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><span class="section-note">Último registro disponible</span></div>
         <div class="metrics">
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 accidentes</div></article>
-          <article class="metric metric-attendance"><div class="metric-label">Presentismo <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Objetivo: ≥ 97%</div></article>
+          <article class="metric metric-attendance"><div class="metric-label">Presentismo grupal <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Promedio automático · objetivo ≥ 97%</div></article>
           <article class="metric metric-base"><div class="metric-label">Base estable <span class="metric-icon">▣</span></div><div class="metric-value" id="metricBase">—</div><div class="metric-target">Objetivo: ≥ 100%</div></article>
           <article class="metric metric-performance"><div class="metric-label">Rendimiento <span class="metric-icon">↗</span></div><div class="metric-value" id="metricPerformance">—</div><div class="metric-target">Objetivo: ≥ 1600</div></article>
           <article class="metric metric-quality"><div class="metric-label">Calidad <span class="metric-icon">◇</span></div><div class="metric-value" id="metricQuality">—</div><div class="metric-target">Objetivo: ≥ 92%</div></article>
@@ -253,7 +253,7 @@
               <h4>Carga masiva de información grupal</h4>
               <p>Elegí una fecha. La jornada esperada se calcula automáticamente según el día; solo modifica las horas reales de quienes no cumplieron.</p>
               <div class="bulk-settings"><label>Fecha de carga<input id="bulkDate" type="date" required></label><label>Jornada esperada<input id="shiftHours" type="text" value="6,25 horas" readonly aria-readonly="true"></label></div>
-              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Horas presentismo</th><th>Presentismo %</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
+              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Horas trabajadas</th><th>Presentismo % automático</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
@@ -365,6 +365,7 @@
     const updateShiftHours = () => {
       const hours = scheduledHoursForDate(document.getElementById('bulkDate').value);
       document.getElementById('shiftHours').value = hours ? `${hours.toString().replace('.', ',')} horas` : 'Sin jornada';
+      document.querySelectorAll('[data-field="attendanceHours"]').forEach((input) => { input.value = hours || ''; });
       updateAllAttendancePercents();
     };
     const updateAttendancePercent = (row) => {
