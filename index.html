@@ -88,13 +88,16 @@
     .bulk-upload { margin-top: 20px; padding: 16px; border: 1px dashed var(--line); background: #fbfcfe; }
     .bulk-upload h4 { margin: 0 0 6px; color: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     .bulk-upload p { margin: 0 0 10px; color: var(--muted); font: 12px Arial, sans-serif; line-height: 1.45; }
+    .bulk-settings { display: grid; grid-template-columns: minmax(180px, 220px) minmax(180px, 220px); gap: 12px; margin: 12px 0; }
+    .bulk-settings label { gap: 5px; }
+    .bulk-settings input { padding: 8px 9px; font: 13px Arial, sans-serif; }
     .bulk-table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--white); }
     .bulk-table { min-width: 850px; }
     .bulk-table th, .bulk-table td { padding: 7px 8px; }
     .bulk-table th { white-space: nowrap; }
     .bulk-table td:first-child { min-width: 170px; font: 13px Arial, sans-serif; font-weight: 700; }
     .bulk-table input, .bulk-table select { min-width: 92px; padding: 7px 6px; font: 13px Arial, sans-serif; }
-    .bulk-table input[type="date"] { min-width: 132px; }
+    .attendance-result { display: block; margin-top: 3px; color: #203867; font: 700 11px Arial, sans-serif; }
     .bulk-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
     @media (max-width: 900px) {
       .bulk-table-wrap { overflow: visible; border: 0; background: transparent; }
@@ -157,7 +160,7 @@
     .plan { --step: #1677ff; } .do { --step: #00a6a6; } .check { --step: #f0a202; } .act { --step: #d64545; }
     .cycle-loop { margin: 15px 20px 0; padding: 10px; color: var(--muted); border-top: 1px dashed var(--line); text-align: center; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     @media (max-width: 1100px) { .app-shell { grid-template-columns: 205px 1fr; } .metrics { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 760px) { .app-shell { display: block; } aside { padding: 17px 20px; } .brand { margin-bottom: 17px; } nav { display: flex; gap: 5px; overflow-x: auto; } nav a { white-space: nowrap; margin: 0; padding: 9px; } .side-label, .aside-foot { display: none; } main { padding: 25px 18px 45px; } .topline { display: block; padding-top: 46px; } .date-box { margin-top: 18px; } .content-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr 1fr; } .login-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .app-shell { display: block; } aside { padding: 17px 20px; } .brand { margin-bottom: 17px; } nav { display: flex; gap: 5px; overflow-x: auto; } nav a { white-space: nowrap; margin: 0; padding: 9px; } .side-label, .aside-foot { display: none; } main { padding: 25px 18px 45px; } .topline { display: block; padding-top: 46px; } .date-box { margin-top: 18px; } .content-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr 1fr; } .login-grid { grid-template-columns: 1fr; } .bulk-settings { grid-template-columns: 1fr; } }
     @media (max-width: 480px) { .metrics { grid-template-columns: 1fr 1fr; } .metric { min-height: 125px; padding: 13px; } .metric-value { font-size: 26px; margin-top: 15px; } .form-grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .form-actions { align-items: stretch; flex-direction: column; } }
     /* Dashboard presentation inspired by the reference layout. */
     body { background: #eef2f8; font-family: Arial, Helvetica, sans-serif; }
@@ -172,11 +175,10 @@
     .date-box { display: none; }
     .top-action { top: 16px; right: 22px; padding: 11px 16px; border-radius: 9px; color: #203867; background: #fff; font-size: 12px; letter-spacing: 0; text-transform: none; }
     .top-action:hover { color: #203867; background: #f5f7fb; }
-    .topline::after { content: 'Rendimiento grupal'; position: absolute; left: 22px; bottom: -53px; color: #203867; font: 700 16px Arial, sans-serif; }
     .view-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 18px; padding: 4px; background: #e3e8f2; border-radius: 11px; }
     .view-tabs a { padding: 11px 8px; color: #52627d; text-align: center; text-decoration: none; font: 700 13px Arial, sans-serif; border-radius: 8px; }
     .view-tabs a:hover, .view-tabs a.active { color: #fff; background: #203867; }
-    .section-heading { margin: 69px 0 12px; }
+    .section-heading { margin: 24px 0 12px; }
     h2 { font-family: Arial, sans-serif; font-weight: 700; }
     .section-note { color: #70809b; }
     .metrics { gap: 12px; }
@@ -190,7 +192,7 @@
     .content-grid { margin-top: 22px; }
     .panel { border-radius: 12px; box-shadow: 0 4px 13px rgba(32, 56, 103, .06); }
     .history { border-radius: 12px; }
-    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .topline::after { left: 12px; bottom: -46px; font-size: 15px; } .section-heading { margin-top: 60px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
+    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
 <body>
@@ -249,8 +251,9 @@
             <div class="action-preview empty" id="actionPreview"><h4>Plan de acción sugerido</h4><p id="actionPreviewText">Completá los indicadores para recibir una propuesta.</p></div>
             <div class="bulk-upload">
               <h4>Carga masiva de información grupal</h4>
-              <p>Completá las filas que quieras cargar. Solo son obligatorios fecha, rendimiento y calidad.</p>
-              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Fecha</th><th>Rendimiento</th><th>Calidad %</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
+              <p>Elegí una fecha y la jornada esperada. Esa fecha se aplicará a todas las filas que subas.</p>
+              <div class="bulk-settings"><label>Fecha de carga<input id="bulkDate" type="date" required></label><label>Horas de jornada<input id="shiftHours" type="number" min="1" max="24" step="0.5" value="8" required></label></div>
+              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Horas presentismo</th><th>Presentismo %</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
@@ -345,18 +348,31 @@
       setRecords(getRecords().filter((item) => item.id !== id));
     };
     const renderBulkTable = () => {
-      const todayValue = today.toISOString().slice(0, 10);
-      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="date" type="date" value="${todayValue}"></td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      document.getElementById('bulkDate').value = today.toISOString().slice(0, 10);
+      document.getElementById('bulkTableBody').innerHTML = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.5" placeholder="8"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
     };
+    const updateAttendancePercent = (row) => {
+      const hours = Number.parseFloat(row.querySelector('[data-field="attendanceHours"]').value);
+      const shiftHours = Number.parseFloat(document.getElementById('shiftHours').value);
+      const output = row.querySelector('[data-field="attendancePercent"]');
+      output.textContent = Number.isFinite(hours) && shiftHours > 0 ? `${Math.min(100, (hours / shiftHours) * 100).toFixed(2)}%` : '—';
+    };
+    const updateAllAttendancePercents = () => document.querySelectorAll('[data-bulk-row]').forEach(updateAttendancePercent);
     const collectBulkRows = () => {
       const records = [];
+      const date = document.getElementById('bulkDate').value;
+      const shiftHours = Number.parseFloat(document.getElementById('shiftHours').value);
+      if (!date) throw new Error('Elegí la fecha que tendrán los registros.');
+      if (!Number.isFinite(shiftHours) || shiftHours <= 0) throw new Error('Ingresá una cantidad válida de horas de jornada.');
       document.querySelectorAll('[data-bulk-row]').forEach((row) => {
         const value = (field) => row.querySelector(`[data-field="${field}"]`).value.trim();
         const performance = value('performance');
         const quality = value('quality');
+        const attendanceHours = Number.parseFloat(value('attendanceHours'));
         if (!performance && !quality) return;
         if (!performance || !quality) throw new Error(`Completá rendimiento y calidad para ${row.firstElementChild.textContent}.`);
-        records.push({ date: value('date'), team: groupName, owner: row.firstElementChild.textContent, safety: '', attendance: '', base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '' });
+        const attendance = Number.isFinite(attendanceHours) ? Math.min(100, (attendanceHours / shiftHours) * 100).toFixed(2) : '';
+        records.push({ date, team: groupName, owner: row.firstElementChild.textContent, safety: '', attendance, base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '' });
       });
       if (!records.length) throw new Error('Completá al menos una fila antes de subir la tabla.');
       return records;
@@ -452,6 +468,8 @@
     logoutButton.addEventListener('click', () => { sessionToken = ''; sessionRole = ''; sessionName = ''; sessionStorage.removeItem(sessionKey); sessionStorage.removeItem(`${sessionKey}-role`); sessionStorage.removeItem(`${sessionKey}-name`); setEditorState(null); render([]); });
     document.getElementById('cancelEditButton').addEventListener('click', () => resetEdit());
     form.addEventListener('input', updateActionPreview);
+    document.getElementById('bulkTableBody').addEventListener('input', (event) => { if (event.target.matches('[data-field="attendanceHours"]')) updateAttendancePercent(event.target.closest('[data-bulk-row]')); });
+    document.getElementById('shiftHours').addEventListener('input', updateAllAttendancePercents);
     document.getElementById('bulkUploadButton').addEventListener('click', async () => {
       const button = document.getElementById('bulkUploadButton');
       const message = document.getElementById('bulkUploadMessage');
