@@ -295,6 +295,7 @@
     const dateFilter = document.getElementById('dateFilter');
     const clearDateFilter = document.getElementById('clearDateFilter');
     const weekFilter = document.getElementById('weekFilter');
+    const viewTabs = document.querySelectorAll('.view-tabs a');
     const today = new Date();
     const formatDate = (value) => { const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsedDate); };
     dateInput.value = today.toISOString().slice(0, 10);
@@ -460,6 +461,7 @@
     dateFilter.addEventListener('change', () => loadRecords().then(render));
     weekFilter.addEventListener('change', () => loadRecords().then(render));
     clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
+    viewTabs.forEach((tab) => tab.addEventListener('click', () => { viewTabs.forEach((item) => item.classList.remove('active')); tab.classList.add('active'); }));
     const openLogin = (event) => { event.preventDefault(); if (sessionToken) { logoutButton.click(); return; } if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
     loginTrigger.addEventListener('click', openLogin);
     closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
