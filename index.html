@@ -266,12 +266,13 @@
           <form class="entry-form" id="entryForm" hidden>
             <div class="form-grid">
               <label>Fecha<input id="date" name="date" type="date" required></label>
-              <label>Responsable<input id="owner" name="owner" type="text" placeholder="Nombre del referente" required></label>
               <label>Seguridad<select id="safety" name="safety"><option value="0 accidentes">0 accidentes</option><option value="1 accidente">1 accidente</option><option value="2+ accidentes">2+ accidentes</option></select></label>
               <label class="manual-indicator">Presentismo<input id="attendance" name="attendance" type="number" min="0" max="100" step="0.01" placeholder="Ej. 97"><span class="field-hint">Se calcula automáticamente desde las horas de la tabla.</span></label>
               <label>Base estable<input id="base" name="base" type="number" min="0" max="100" step="0.01" placeholder="Ej. 100" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label class="manual-indicator">Rendimiento<input id="performance" name="performance" type="number" min="0" step="0.01" placeholder="Ej. 1600"><span class="field-hint">Se calcula como promedio de las personas presentes.</span></label>
               <label class="manual-indicator">Calidad<input id="quality" name="quality" type="number" min="0" max="100" step="0.01" placeholder="Ej. 92"><span class="field-hint">Se calcula como promedio de las personas presentes.</span></label>
+              <label>Rendimiento grupal<input id="groupPerformance" name="groupPerformance" type="number" min="0" step="0.01" placeholder="Ej. 1600" required></label>
+              <label>Calidad grupal<input id="groupQuality" name="groupQuality" type="number" min="0" max="100" step="0.01" placeholder="Ej. 92" required></label>
               <label>Costos<input id="cost" name="cost" type="number" min="0" max="100" step="0.01" placeholder="Ej. 100" required><span class="field-hint">Ingresá solo el número. Se mostrará como %.</span></label>
               <label class="full">Frase motivadora<textarea id="motivation" name="motivation" placeholder="Ej. Juntos hacemos que cada jornada cuente." required></textarea></label>
               <label class="full">Hallazgo / mensaje del día<textarea id="message" name="message" placeholder="¿Qué necesitamos conversar con el grupo?"></textarea></label>
@@ -595,7 +596,7 @@
         button.disabled = false;
       }
     });
-    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = { ...Object.fromEntries(new FormData(form).entries()), team: groupName }; button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
+    form.addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('submitRecordButton'); const record = { ...Object.fromEntries(new FormData(form).entries()), team: groupName, owner: '', laborType: 'group' }; button.disabled = true; button.textContent = editingId ? 'Guardando...' : 'Publicando...'; try { if (editingId) await updateRecord(editingId, record); else await saveRecord(record); resetEdit(); render(); document.getElementById('resumen').scrollIntoView({ behavior: 'smooth' }); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; if (!editingId) button.textContent = 'Publicar registro'; } });
     renderBulkTable();
     if (sessionToken && apiUrl) { setAppAccess(true); setEditorState({ role: sessionRole, name: sessionName }); loadRecords().then(render); } else { setAppAccess(false); }
   </script>
