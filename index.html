@@ -210,6 +210,9 @@
     .content-grid { margin-top: 22px; }
     .panel { border-radius: 12px; box-shadow: 0 4px 13px rgba(32, 56, 103, .06); }
     .history { border-radius: 12px; }
+    .weekly-result { margin-top: 18px; }
+    .weekly-result table { min-width: 680px; }
+    .weekly-result .empty { padding: 25px 20px; }
     @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .section-heading-tools { align-items: flex-end; gap: 8px; } .section-heading-tools .section-note { display: none; } .section-heading-tools .date-box { display: block; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
@@ -240,9 +243,9 @@
       <header class="topline" id="resumen">
         <div><div class="eyebrow">Grupo de cosecha</div><h1>Rendimiento grupal</h1><p class="subtitle">Resultados diarios de rendimiento y calidad</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión</a></div>
       </header>
-      <nav class="view-tabs" aria-label="Vistas del tablero"><a class="active" href="#metrics-title">Rendimiento</a><a href="#metrics-title">Calidad</a><a href="#history-title">Historial</a><a href="#feedbackTitle">Mi resultado</a></nav>
+      <nav class="view-tabs admin-only" aria-label="Vistas del tablero"><a class="active" href="#metrics-title">Rendimiento</a><a href="#metrics-title">Calidad</a><a href="#history-title">Historial</a><a href="#feedbackTitle">Mi resultado</a></nav>
 
-      <section aria-labelledby="metrics-title">
+      <section class="admin-only" aria-labelledby="metrics-title">
         <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><div class="section-heading-tools"><span class="section-note">Último registro disponible</span><div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Último día</strong><label class="date-filter"><span>Filtrar fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div></div></div>
         <div class="metrics">
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 accidentes</div></article>
@@ -253,10 +256,10 @@
           <article class="metric metric-cost"><div class="metric-label">Costos <span class="metric-icon">$</span></div><div class="metric-value" id="metricCost">—</div><div class="metric-target">Objetivo: MCI 100%</div></article>
         </div>
       </section>
-      <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
-      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p></section>
+      <section class="motivation admin-only" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
+      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><div class="table-wrap"><table><thead><tr><th>Semana</th><th>Jornadas</th><th>Rendimiento promedio</th><th>Calidad promedio</th><th>Presentismo promedio</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
 
-      <div class="content-grid">
+      <div class="content-grid admin-only">
         <section id="carga" class="panel" style="margin-top: 22px;">
           <div class="panel-head"><h3>Cargar comunicación diaria</h3><span id="accessLabel">Acceso privado</span></div>
           <div class="login login-modal" id="adminGate" hidden>
@@ -297,7 +300,7 @@
 
       </div>
 
-      <section class="panel history" aria-labelledby="history-title">
+      <section class="panel history admin-only" aria-labelledby="history-title">
         <div class="panel-head"><h3 id="history-title">Historial de comunicaciones</h3><div class="history-filter"><label for="weekFilter">Semana</label><select id="weekFilter" aria-label="Filtrar historial por semana"></select><span id="recordCount">0 registros</span></div></div>
         <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Equipo</th><th>Referente</th><th>Rendimiento</th><th>Calidad</th><th>Estado</th><th>Gestión</th></tr></thead><tbody id="historyBody"><tr><td class="empty" colspan="7">Todavía no hay registros. Cargá la primera comunicación del día.</td></tr></tbody></table></div>
       </section>
@@ -344,6 +347,9 @@
       const isAuthenticated = Boolean(sessionToken && session);
       const isAdmin = isAuthenticated && session.role === 'admin';
       if (isAuthenticated) adminGate.hidden = true;
+      document.querySelectorAll('.admin-only').forEach((element) => { element.hidden = !isAdmin; });
+      document.getElementById('weeklyResult').hidden = !isAuthenticated || isAdmin;
+      document.getElementById('feedbackText').hidden = !isAdmin;
       form.hidden = !isAdmin;
       loginForm.hidden = !connected || isAuthenticated;
       if (!connected) loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.';
@@ -519,6 +525,11 @@
       return `${performanceMessage} ${qualityMessage}`;
     };
     const renderFeedback = (record) => {
+      if (sessionRole === 'user') {
+        document.getElementById('feedbackTitle').textContent = `Resultado semanal de ${sessionName}`;
+        document.getElementById('feedbackText').textContent = '';
+        return;
+      }
       if (!sessionName || !record?.date) {
         document.getElementById('feedbackTitle').textContent = sessionName ? `Resultado de ${sessionName}` : 'Iniciá sesión para consultar tu resultado';
         document.getElementById('feedbackText').textContent = feedbackFor(record || {});
@@ -529,6 +540,22 @@
     };
     const weekInfo = (value) => { const date = new Date(`${value}T12:00:00`); const start = new Date(date); start.setDate(date.getDate() - date.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); const firstSunday = new Date(start.getFullYear(), 0, 1); firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay()); const number = Math.floor((start - firstSunday) / 604800000) + 1; const key = `${start.getFullYear()}-${String(number).padStart(2, '0')}`; return { key, number, start, end }; };
     const weekLabel = ({ number, start, end }) => `Semana ${number} · ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short' }).format(start)} - ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end)}`;
+    const renderWeeklyResult = (records) => {
+      const weeklyResult = document.getElementById('weeklyResult');
+      if (sessionRole !== 'user') return;
+      const weeks = new Map();
+      records.filter((record) => record.laborType !== 'attendance' && record.date).forEach((record) => {
+        const info = weekInfo(record.date);
+        if (!weeks.has(info.key)) weeks.set(info.key, { info, records: [] });
+        weeks.get(info.key).records.push(record);
+      });
+      const rows = [...weeks.values()].sort((first, second) => second.info.start - first.info.start).map(({ info, records: weekRecords }) => {
+        const messages = [...new Set(weekRecords.map((record) => String(record.message || '').trim()).filter(Boolean))].join(' · ');
+        return `<tr><td><strong>${weekLabel(info)}</strong></td><td>${weekRecords.length}</td><td>${Number.isFinite(averageOf(weekRecords, 'performance')) ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(averageOf(weekRecords, 'performance')) : '—'}</td><td>${percentage(averageOf(weekRecords, 'quality'))}</td><td>${percentage(averageOf(weekRecords, 'attendance'))}</td><td>${messages || 'Sin observaciones'}</td></tr>`;
+      }).join('');
+      document.getElementById('weeklyResultBody').innerHTML = rows || '<tr><td class="empty" colspan="6">Todavía no hay resultados semanales para esta sesión.</td></tr>';
+      weeklyResult.hidden = false;
+    };
     const populateWeekFilter = (records) => { const weeks = new Map(); records.forEach((record) => { if (record.date) { const info = weekInfo(record.date); weeks.set(info.key, info); } }); const current = weekInfo(today.toISOString().slice(0, 10)); weeks.set(current.key, current); const selected = weekFilter.value || current.key; weekFilter.innerHTML = [...weeks.values()].sort((a, b) => b.start - a.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join(''); weekFilter.value = weeks.has(selected) ? selected : current.key; };
     const statusFor = (record) => {
       const values = [percentNumber(record.attendance) >= 95, percentNumber(record.base) >= 90, numeric(record.performance) >= 100, percentNumber(record.quality) >= 98, record.safety === '0 incidentes'];
@@ -556,6 +583,7 @@
       document.getElementById('metricCost').textContent = latest ? percentage(latest.cost) : '—';
       document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
       renderFeedback(latest || {});
+      renderWeeklyResult(records);
       renderActionPlan(latest || {});
       const sortedHistoryRecords = historyRecords.sort((a, b) => b.date.localeCompare(a.date));
       document.getElementById('recordCount').textContent = `${sortedHistoryRecords.length} ${sortedHistoryRecords.length === 1 ? 'registro' : 'registros'}`;
