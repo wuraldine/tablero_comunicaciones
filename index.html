@@ -213,6 +213,7 @@
     .weekly-result { margin-top: 18px; }
     .weekly-result table { min-width: 680px; }
     .weekly-result .empty { padding: 25px 20px; }
+    .data-status { margin: 12px 0 0; color: var(--red); font: 12px Arial, sans-serif; }
     @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .section-heading-tools { align-items: flex-end; gap: 8px; } .section-heading-tools .section-note { display: none; } .section-heading-tools .date-box { display: block; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
@@ -241,12 +242,12 @@
 
     <main>
       <header class="topline" id="resumen">
-        <div><div class="eyebrow">Grupo de cosecha</div><h1>Rendimiento grupal</h1><p class="subtitle">Resultados diarios de rendimiento y calidad</p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión</a></div>
+        <div><div class="eyebrow">Grupo de cosecha</div><h1>Rendimiento grupal</h1><p class="subtitle">Resultados diarios de rendimiento y calidad</p><p class="data-status" id="dataStatus" hidden></p><a class="top-action" id="loginTrigger" href="#carga">Iniciar sesión</a></div>
       </header>
       <nav class="view-tabs admin-only" aria-label="Vistas del tablero"><a class="active" href="#metrics-title">Rendimiento</a><a href="#metrics-title">Calidad</a><a href="#history-title">Historial</a><a href="#feedbackTitle">Mi resultado</a></nav>
 
-      <section class="admin-only" aria-labelledby="metrics-title">
-        <div class="section-heading"><h2 id="metrics-title">Pulso del equipo</h2><div class="section-heading-tools"><span class="section-note">Último registro disponible</span><div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Último día</strong><label class="date-filter"><span>Filtrar fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div></div></div>
+      <section aria-labelledby="metrics-title">
+          <div class="section-heading"><h2 id="metrics-title">Consolidado grupal</h2><div class="section-heading-tools"><span class="section-note">Último registro disponible</span><div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Último día</strong><label class="date-filter"><span>Filtrar fecha</span><input id="dateFilter" type="date" aria-label="Filtrar comunicaciones por fecha"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div></div></div>
         <div class="metrics">
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 accidentes</div></article>
           <article class="metric metric-attendance"><div class="metric-label">Presentismo grupal <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Promedio automático · objetivo ≥ 97%</div></article>
@@ -256,7 +257,7 @@
           <article class="metric metric-cost"><div class="metric-label">Costos <span class="metric-icon">$</span></div><div class="metric-value" id="metricCost">—</div><div class="metric-target">Objetivo: MCI 100%</div></article>
         </div>
       </section>
-      <section class="motivation admin-only" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
+      <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
       <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><div class="table-wrap"><table><thead><tr><th>Semana</th><th>Jornadas</th><th>Rendimiento promedio</th><th>Calidad promedio</th><th>Presentismo promedio</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
 
       <div class="content-grid admin-only">
@@ -309,13 +310,14 @@
 
   <script>
     const storageKey = 'tablero-comunicaciones-registros';
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbwMdRAmdNjMpz4xm7ZbT8_5j--J9ACi1qbQ3Oovfss_EOHHdoXhv_o3cG7NJZc22tQHmA/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbw0NCObFmzccIxGWXjJDMhDXqGX5foCwdBXSygU7vzi1QeXuOwSBmK5WwQ_kIYXqFhx9A/exec';
     const form = document.getElementById('entryForm');
     const loginForm = document.getElementById('loginForm');
     const accessGate = document.getElementById('accessGate');
     const appShell = document.getElementById('appShell');
     const accessLoginForm = document.getElementById('accessLoginForm');
     const accessMessage = document.getElementById('accessMessage');
+    const dataStatus = document.getElementById('dataStatus');
     const adminGate = document.getElementById('adminGate');
     const loginMessage = document.getElementById('loginMessage');
     const loginTrigger = document.getElementById('loginTrigger');
@@ -388,10 +390,18 @@
         const response = await fetch(`${apiUrl}?action=list&token=${encodeURIComponent(sessionToken)}`);
         const records = await response.json();
         if (!Array.isArray(records)) throw new Error(records.message || 'No se pudieron cargar los registros.');
+        dataStatus.hidden = true;
+        dataStatus.textContent = '';
         setRecords(records);
         return records;
       } catch (error) {
-        if (sessionToken) loginMessage.textContent = error.message || 'No se pudieron cargar los registros.';
+        const message = error.message || 'No se pudieron cargar los registros.';
+        if (sessionToken) {
+          loginMessage.textContent = message;
+          accessMessage.textContent = message;
+          dataStatus.textContent = message;
+          dataStatus.hidden = false;
+        }
         return [];
       }
     };
@@ -544,7 +554,7 @@
       const weeklyResult = document.getElementById('weeklyResult');
       if (sessionRole !== 'user') return;
       const weeks = new Map();
-      records.filter((record) => record.laborType !== 'attendance' && record.date).forEach((record) => {
+      records.filter((record) => record.laborType === 'productive' && record.date).forEach((record) => {
         const info = weekInfo(record.date);
         if (!weeks.has(info.key)) weeks.set(info.key, { info, records: [] });
         weeks.get(info.key).records.push(record);
@@ -571,17 +581,18 @@
       const historyRecords = records.filter((record) => !weekFilter.value || weekInfo(record.date).key === weekFilter.value);
       document.getElementById('todayLabel').textContent = selectedDate ? dateLabel.format(new Date(`${selectedDate}T12:00:00`)) : 'Sin registros';
       const latest = summaryRecords[0];
-      document.getElementById('metricSafety').textContent = latest?.safety || '—';
-      const groupAttendance = averageAgainstBase(summaryRecords, 'attendance');
+      const dashboardRecord = groupRecord || latest;
+      document.getElementById('metricSafety').textContent = dashboardRecord?.safety || '—';
+      const groupAttendance = groupRecord ? numeric(groupRecord.attendance) : averageAgainstBase(summaryRecords, 'attendance');
       const persistedSummary = groupRecord || summaryRecords.find((record) => Number.isFinite(numeric(record.groupPerformance)) && Number.isFinite(numeric(record.groupQuality)));
       const groupPerformance = persistedSummary ? numeric(persistedSummary.groupPerformance) : averageAgainstBase(summaryRecords, 'performance');
       const groupQuality = persistedSummary ? numeric(persistedSummary.groupQuality) : averageAgainstBase(summaryRecords, 'quality');
       document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
-      document.getElementById('metricBase').textContent = latest ? percentage(latest.base) : '—';
+      document.getElementById('metricBase').textContent = dashboardRecord ? percentage(dashboardRecord.base) : '—';
       document.getElementById('metricPerformance').textContent = Number.isFinite(groupPerformance) ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(groupPerformance) : '—';
       document.getElementById('metricQuality').textContent = Number.isFinite(groupQuality) ? percentage(groupQuality) : '—';
-      document.getElementById('metricCost').textContent = latest ? percentage(latest.cost) : '—';
-      document.getElementById('motivationDisplay').textContent = latest?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
+      document.getElementById('metricCost').textContent = dashboardRecord ? percentage(dashboardRecord.cost) : '—';
+      document.getElementById('motivationDisplay').textContent = dashboardRecord?.motivation || 'Cada jornada es una nueva oportunidad para cosechar buenos resultados.';
       renderFeedback(latest || {});
       renderWeeklyResult(records);
       renderActionPlan(latest || {});

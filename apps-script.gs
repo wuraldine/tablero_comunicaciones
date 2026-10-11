@@ -151,12 +151,54 @@ function doGet(event) {
   if (!session) return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   const rows = sheet.getDataRange().getValues();
-  const records = rows.slice(1).map((row, rowIndex) => {
+  const allRecords = rows.slice(1).map((row, rowIndex) => {
     const record = { id: String(rowIndex + 2), ...Object.fromEntries(HEADERS.map((header, index) => [header, valueFor(header, row[index])])) };
     if (!record.userKey && record.owner && samePerson(record.owner, session.name)) record.userKey = session.username;
     return record;
-  }).filter((record) => record.date && (session.role === 'admin' || record.userKey === session.username || samePerson(record.owner, session.name) || samePerson(record.owner, session.username)));
-  return json(records);
+  }).filter((record) => record.date);
+  if (session.role === 'admin') return json(allRecords);
+  const ownRecords = allRecords.filter((record) => record.laborType !== 'group' && (record.userKey === session.username || samePerson(record.owner, session.name)));
+  const groupRecords = buildGroupRecords(allRecords);
+  return json([...groupRecords, ...ownRecords]);
+}
+
+function buildGroupRecords(records) {
+  const byDate = {};
+  records.forEach((record) => {
+    if (!byDate[record.date]) byDate[record.date] = [];
+    byDate[record.date].push(record);
+  });
+  return Object.entries(byDate).map(([date, dateRecords]) => {
+    const savedGroup = dateRecords.find((record) => record.laborType === 'group');
+    if (savedGroup) return savedGroup;
+    const productiveRecords = dateRecords.filter((record) => record.laborType !== 'attendance' && record.owner);
+    const attendanceRecords = dateRecords.filter((record) => Number.isFinite(Number(record.attendance)));
+    const productiveBase = USER_NAMES.filter((name) => name !== 'Paola Ferreira').length;
+    const average = (items, field, denominator = items.length) => {
+      const total = items.reduce((sum, record) => sum + (Number.isFinite(Number(record[field])) ? Number(record[field]) : 0), 0);
+      return denominator ? (total / denominator).toFixed(2) : '';
+    };
+    return {
+      id: `group-${date}`,
+      date,
+      team: productiveRecords[0]?.team || dateRecords[0]?.team || '',
+      owner: '',
+      safety: dateRecords.find((record) => record.safety)?.safety || '',
+      attendance: average(attendanceRecords, 'attendance'),
+      base: dateRecords.find((record) => record.base)?.base || '',
+      performance: '',
+      quality: '',
+      cost: dateRecords.find((record) => record.cost)?.cost || '',
+      motivation: dateRecords.find((record) => record.motivation)?.motivation || '',
+      message: '',
+      cause: '',
+      planAccion: '',
+      laborType: 'group',
+      userKey: '',
+      groupPerformance: average(productiveRecords, 'performance', productiveBase),
+      groupQuality: average(productiveRecords, 'quality', productiveBase)
+    };
+  });
 }
 
 function valueFor(header, value) {
