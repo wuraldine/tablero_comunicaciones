@@ -142,6 +142,23 @@ function repairExistingRecords() {
   return `Registros reparados: ${repaired.length}.`;
 }
 
+function updateGroupIndicators(date, performance, quality) {
+  const sheet = getSheet();
+  const rows = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues() : [];
+  const matchingRows = rows.map((row, index) => ({ row, number: index + 2 })).filter(({ row }) => valueFor('date', row[0]) === date && String(row[13] || '') === 'group');
+  if (matchingRows.length) {
+    matchingRows.forEach(({ number }) => sheet.getRange(number, 16, 1, 2).setValues([[String(performance), String(quality)]]));
+    return `Indicadores grupales actualizados para ${date}: rendimiento ${performance}, calidad ${quality}.`;
+  }
+  const row = recordValues({ date, team: 'Grupo de cosecha de Nay', laborType: 'group' }, performance, quality);
+  sheet.getRange(sheet.getLastRow() + 1, 1, 1, HEADERS.length).setValues([row]);
+  return `Fila grupal creada para ${date}: rendimiento ${performance}, calidad ${quality}.`;
+}
+
+function updateOctober8GroupIndicators() {
+  return updateGroupIndicators('2026-10-08', 1233, 87.5);
+}
+
 function hashPassword(password) {
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(password), Utilities.Charset.UTF_8);
   return bytes.map((byte) => (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0')).join('');
