@@ -553,7 +553,8 @@
       document.getElementById('feedbackText').textContent = record.message ? `${feedbackFor(record)} Observación: ${record.message}` : feedbackFor(record);
     };
     const weekInfo = (value) => { const date = new Date(`${value}T12:00:00`); const start = new Date(date); start.setDate(date.getDate() - date.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); const firstSunday = new Date(start.getFullYear(), 0, 1); firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay()); const number = Math.floor((start - firstSunday) / 604800000) + 1; const key = `${start.getFullYear()}-${String(number).padStart(2, '0')}`; return { key, number, start, end }; };
-    const weekLabel = ({ number, start, end }) => `Semana ${number} · ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short' }).format(start)} - ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end)}`;
+    const weekLabel = ({ number }) => `Semana ${number}`;
+    const inputDateValue = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     const dateWithWeekday = (value) => new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
     const renderWeeklyResult = (records) => {
       const weeklyResult = document.getElementById('weeklyResult');
@@ -564,7 +565,21 @@
       document.getElementById('weeklyResultBody').innerHTML = rows || '<tr><td class="empty" colspan="5">Todavía no hay resultados para esta semana.</td></tr>';
       weeklyResult.hidden = false;
     };
-    const populateWeekFilter = (records) => { const weeks = new Map(); records.forEach((record) => { if (record.date) { const info = weekInfo(record.date); weeks.set(info.key, info); } }); const current = weekInfo(today.toISOString().slice(0, 10)); weeks.set(current.key, current); const selected = weekFilter.value || current.key; weekFilter.innerHTML = [...weeks.values()].sort((a, b) => b.start - a.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join(''); weekFilter.value = weeks.has(selected) ? selected : current.key; };
+    const populateWeekFilter = (records) => {
+      const weeks = new Map();
+      records.forEach((record) => { if (record.date) { const info = weekInfo(record.date); weeks.set(info.key, info); } });
+      const current = weekInfo(today.toISOString().slice(0, 10));
+      weeks.set(current.key, current);
+      const selected = weekFilter.value || current.key;
+      weekFilter.innerHTML = [...weeks.values()].sort((a, b) => b.start - a.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join('');
+      weekFilter.value = weeks.has(selected) ? selected : current.key;
+      const selectedInfo = weeks.get(weekFilter.value);
+      if (selectedInfo) {
+        dateFilter.min = inputDateValue(selectedInfo.start);
+        dateFilter.max = inputDateValue(selectedInfo.end);
+        if (dateFilter.value && (dateFilter.value < dateFilter.min || dateFilter.value > dateFilter.max)) dateFilter.value = '';
+      }
+    };
     const statusFor = (record) => {
       const values = [percentNumber(record.attendance) >= 95, percentNumber(record.base) >= 90, numeric(record.performance) >= 100, percentNumber(record.quality) >= 98, record.safety === '0 incidentes'];
       return values.filter(Boolean).length >= 4 ? ['En objetivo', 'status-ok'] : values.filter(Boolean).length >= 2 ? ['Revisar', 'status-warn'] : ['Atención', 'status-risk'];
