@@ -159,6 +159,27 @@ function updateOctober8GroupIndicators() {
   return updateGroupIndicators('2026-10-08', 1233, 87.5);
 }
 
+function updateOctober8DunerRecord() {
+  const date = '2026-10-08';
+  const owner = 'Duner Mendoza';
+  const performance = '623';
+  const quality = '91';
+  const sheet = getSheet();
+  const rows = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues() : [];
+  const matchingRows = rows.map((row, index) => ({ row, number: index + 2 })).filter(({ row }) => valueFor('date', row[0]) === date && row[13] !== 'group' && samePerson(row[2], owner));
+  if (matchingRows.length) {
+    matchingRows.forEach(({ number }) => {
+      sheet.getRange(number, 3).setValue(owner);
+      sheet.getRange(number, 7, 1, 2).setValues([[performance, quality]]);
+      sheet.getRange(number, 15).setValue(usernameForName(owner));
+    });
+    return `Registro de ${owner} actualizado para ${date}: rendimiento ${performance}, calidad ${quality}.`;
+  }
+  const row = recordValues({ date, team: 'Grupo de cosecha de Nay', owner, performance, quality, laborType: 'productive' }, '', '');
+  sheet.getRange(sheet.getLastRow() + 1, 1, 1, HEADERS.length).setValues([row]);
+  return `Registro de ${owner} creado para ${date}: rendimiento ${performance}, calidad ${quality}.`;
+}
+
 function hashPassword(password) {
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(password), Utilities.Charset.UTF_8);
   return bytes.map((byte) => (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0')).join('');
