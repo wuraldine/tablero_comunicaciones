@@ -4,11 +4,11 @@ const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'perfo
 const USER_HEADERS = ['username', 'name', 'passwordHash', 'initialPassword', 'active'];
 const SESSION_TTL_SECONDS = 21600;
 const USER_NAMES = [
-  'Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo',
+  'Natalia Amariles', 'Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo',
   'Ronald Cardoza', 'Angela Chacin', 'Yeinys Contreras', 'Adriana De Avila', 'Paola Ferreira', 'Fernanda Gallego',
   'Jaiber Galvan', 'Claudia Garcia', 'Carolina Gonzalez', 'Libardo Grisales', 'Mario Hernandez', 'Geraldine Lopez',
-  'Yiseth Medina', 'Danilson Mendoza', 'Alba Muñoz', 'Fanelis Narvaez', 'Sophia Pacheco', 'Margara Piedrahita',
-  'Carolina Sanchez', 'Yurianys Serna', 'Rosa Serna', 'Adelmo Urariyu', 'Yeisly Valladares', 'Natalia Amariles',
+  'Yiseth Medina', 'Duner Mendoza', 'Danilson Mendoza', 'Alba Muñoz', 'Fanelis Narvaez', 'Sophia Pacheco', 'Margara Piedrahita',
+  'Carolina Sanchez', 'Yurianys Serna', 'Rosa Serna', 'Adelmo Urariyu', 'Yeisly Valladares',
   'Vergara Solanyi'
 ];
 
