@@ -250,7 +250,9 @@ function doPost(event) {
   const payload = JSON.parse(event.postData.contents);
   if (payload.action === 'login') return login(payload);
   const session = getSession(payload.token);
-  if (!session || session.role !== 'admin') return json({ ok: false, message: 'Sesión no autorizada.' });
+  if (!session) return json({ ok: false, message: 'Sesión no autorizada.' });
+  if (payload.action === 'changePassword') return changePassword(session, payload);
+  if (session.role !== 'admin') return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   if (payload.action === 'save') {
     sheet.appendRow(recordValues(payload.record, payload.record.groupPerformance, payload.record.groupQuality));
@@ -270,6 +272,24 @@ function doPost(event) {
   else if (payload.action === 'delete') deleteRecord(sheet, payload.id);
   else return json({ ok: false, message: 'Acción no válida.' });
   return json({ ok: true });
+}
+
+function changePassword(session, payload) {
+  if (session.role !== 'user') return json({ ok: false, message: 'El cambio de PIN de administrador se gestiona en las propiedades del script.' });
+  const currentPassword = String(payload.currentPassword || '').trim();
+  const newPassword = String(payload.newPassword || '').trim();
+  const confirmation = String(payload.confirmation || '').trim();
+  if (!/^\d{4}$/.test(currentPassword) || !/^\d{4}$/.test(newPassword)) return json({ ok: false, message: 'El PIN debe tener exactamente 4 dígitos.' });
+  if (newPassword !== confirmation) return json({ ok: false, message: 'La confirmación no coincide con el nuevo PIN.' });
+  const sheet = getUsersSheet();
+  if (sheet.getLastRow() < 2) return json({ ok: false, message: 'No se encontró el usuario.' });
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, USER_HEADERS.length).getValues();
+  const rowIndex = rows.findIndex((row) => String(row[0]).trim().toLowerCase() === String(session.username).trim().toLowerCase());
+  if (rowIndex < 0 || hashPassword(currentPassword) !== String(rows[rowIndex][2])) return json({ ok: false, message: 'El PIN actual no es correcto.' });
+  rows[rowIndex][2] = hashPassword(newPassword);
+  rows[rowIndex][3] = newPassword;
+  sheet.getRange(rowIndex + 2, 1, 1, USER_HEADERS.length).setValues([rows[rowIndex]]);
+  return json({ ok: true, message: 'PIN actualizado correctamente.' });
 }
 
 function rowNumber(id, sheet) {

@@ -213,6 +213,13 @@
     .weekly-result { margin-top: 18px; }
     .weekly-result table { min-width: 680px; }
     .weekly-result .empty { padding: 25px 20px; }
+    .password-panel { margin-top: 18px; padding: 18px 20px; border: 1px solid #dbe2ee; border-radius: 10px; background: #fff; }
+    .password-panel h3 { margin: 0 0 12px; color: var(--navy); font: 700 15px Arial, sans-serif; }
+    .password-grid { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 10px; align-items: end; }
+    .password-grid label { gap: 5px; }
+    .password-grid input { padding: 9px 10px; font: 14px Arial, sans-serif; }
+    .password-message { min-height: 16px; margin: 10px 0 0; color: var(--muted); font: 12px Arial, sans-serif; }
+    @media (max-width: 760px) { .password-grid { grid-template-columns: 1fr; } }
     .user-week-filter { display: flex; align-items: center; gap: 8px; width: fit-content; margin-bottom: 12px; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
     .user-week-filter select { width: auto; min-width: 220px; padding: 7px 9px; font: 12px Arial, sans-serif; }
     .shared-week-filter { display: flex; align-items: center; gap: 8px; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
@@ -263,6 +270,7 @@
       </section>
       <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
       <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><div class="table-wrap"><table><thead><tr><th>Fecha y día</th><th>Rendimiento</th><th>Calidad</th><th>Presentismo</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
+      <section class="password-panel" id="passwordPanel" hidden><h3>Modificar mi PIN</h3><form id="passwordForm"><div class="password-grid"><label>PIN actual<input id="currentPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required></label><label>Nuevo PIN<input id="newPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><label>Confirmar PIN<input id="passwordConfirmation" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><button class="primary" type="submit">Guardar PIN</button></div><p class="password-message" id="passwordMessage" role="status"></p></form></section>
 
       <div class="content-grid admin-only">
         <section id="carga" class="panel" style="margin-top: 22px;">
@@ -322,6 +330,9 @@
     const accessLoginForm = document.getElementById('accessLoginForm');
     const accessMessage = document.getElementById('accessMessage');
     const dataStatus = document.getElementById('dataStatus');
+    const passwordPanel = document.getElementById('passwordPanel');
+    const passwordForm = document.getElementById('passwordForm');
+    const passwordMessage = document.getElementById('passwordMessage');
     const adminGate = document.getElementById('adminGate');
     const loginMessage = document.getElementById('loginMessage');
     const loginTrigger = document.getElementById('loginTrigger');
@@ -355,6 +366,7 @@
       if (isAuthenticated) adminGate.hidden = true;
       document.querySelectorAll('.admin-only').forEach((element) => { element.hidden = !isAdmin; });
       document.getElementById('weeklyResult').hidden = !isAuthenticated || isAdmin;
+      passwordPanel.hidden = !isAuthenticated || isAdmin;
       document.getElementById('feedbackText').hidden = !isAdmin;
       form.hidden = !isAdmin;
       loginForm.hidden = !connected || isAuthenticated;
@@ -626,6 +638,22 @@
     const openLogin = (event) => { event.preventDefault(); if (sessionToken) { logoutButton.click(); return; } if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
     loginTrigger.addEventListener('click', openLogin);
     accessLoginForm.addEventListener('submit', (event) => { event.preventDefault(); const button = accessLoginForm.querySelector('button[type="submit"]'); button.disabled = true; authenticate(document.getElementById('accessUsername').value, document.getElementById('accessPassword').value, accessMessage, accessLoginForm, button); });
+    passwordForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = passwordForm.querySelector('button[type="submit"]');
+      button.disabled = true;
+      passwordMessage.textContent = '';
+      try {
+        const result = await postToApi({ action: 'changePassword', token: sessionToken, currentPassword: document.getElementById('currentPassword').value, newPassword: document.getElementById('newPassword').value, confirmation: document.getElementById('passwordConfirmation').value });
+        if (!result.ok) throw new Error(result.message || 'No se pudo actualizar el PIN.');
+        passwordForm.reset();
+        passwordMessage.textContent = result.message;
+      } catch (error) {
+        passwordMessage.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
     closeLoginButton.addEventListener('click', () => { adminGate.hidden = true; });
     adminGate.addEventListener('click', (event) => { if (event.target === adminGate) adminGate.hidden = true; });
     loginForm.addEventListener('submit', async (event) => { event.preventDefault(); const button = loginForm.querySelector('button[type="submit"]'); button.disabled = true; loginMessage.textContent = ''; try { const result = await postToApi({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value }); if (!result.ok) throw new Error(result.message || 'Usuario o contraseña incorrectos.'); sessionToken = result.token; sessionRole = result.role || 'admin'; sessionName = result.name || 'Administrador'; sessionStorage.setItem(sessionKey, sessionToken); sessionStorage.setItem(`${sessionKey}-role`, sessionRole); sessionStorage.setItem(`${sessionKey}-name`, sessionName); loginForm.reset(); setEditorState({ role: sessionRole, name: sessionName }); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } finally { button.disabled = false; } });
