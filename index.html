@@ -591,8 +591,8 @@
       const latest = summaryRecords[0];
       const dashboardRecord = groupRecord || latest;
       document.getElementById('metricSafety').textContent = dashboardRecord?.safety || '—';
-      const groupAttendance = groupRecord ? numeric(groupRecord.attendance) : averageAgainstBase(summaryRecords, 'attendance');
-      const persistedSummary = groupRecord || summaryRecords.find((record) => Number.isFinite(numeric(record.groupPerformance)) && Number.isFinite(numeric(record.groupQuality)));
+      const groupAttendance = Number.isFinite(numeric(groupRecord?.attendance)) ? numeric(groupRecord.attendance) : averageAgainstBase(summaryRecords, 'attendance');
+      const persistedSummary = [groupRecord, ...summaryRecords].find((record) => Number.isFinite(numeric(record?.groupPerformance)) && Number.isFinite(numeric(record?.groupQuality)));
       const groupPerformance = persistedSummary ? numeric(persistedSummary.groupPerformance) : averageAgainstBase(summaryRecords, 'performance');
       const groupQuality = persistedSummary ? numeric(persistedSummary.groupQuality) : averageAgainstBase(summaryRecords, 'quality');
       document.getElementById('metricAttendance').textContent = Number.isFinite(groupAttendance) ? percentage(groupAttendance) : '—';
