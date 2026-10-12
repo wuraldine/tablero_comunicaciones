@@ -43,7 +43,7 @@
     .date-box span { display: block; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
     .date-box strong { display: block; margin-top: 4px; color: var(--navy); font: 15px Arial, sans-serif; }
     .date-filter { margin-top: 8px; }
-    .date-filter input { padding: 7px 8px; font-size: 13px; }
+    .date-filter input, .date-filter select { padding: 7px 8px; font-size: 13px; }
     .clear-filter { cursor: pointer; margin-top: 7px; padding: 0; border: 0; color: var(--blue); background: transparent; font: 11px Arial, sans-serif; }
     .top-action { position: absolute; top: 0; right: 0; display: inline-block; padding: 10px 14px; color: #fff; background: var(--navy); font: 700 11px Arial, sans-serif; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
     .top-action:hover { background: #1d4b70; }
@@ -187,7 +187,7 @@
     .date-box > span, .date-box > strong, .clear-filter { display: none; }
     .date-filter { display: flex; align-items: center; gap: 8px; margin: 0; color: #cbd6ea; font: 11px Arial, sans-serif; }
     .date-filter > span { display: inline; color: #cbd6ea; font: 700 10px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-    .date-filter input { width: 145px; padding: 9px 10px; border: 0; border-radius: 7px; color: #203867; background: #fff; font: 13px Arial, sans-serif; }
+    .date-filter input, .date-filter select { width: 145px; padding: 9px 10px; border: 0; border-radius: 7px; color: #203867; background: #fff; font: 13px Arial, sans-serif; }
     .top-action { top: 16px; right: 22px; padding: 11px 16px; border-radius: 9px; color: #203867; background: #fff; font-size: 12px; letter-spacing: 0; text-transform: none; }
     .top-action:hover { color: #203867; background: #f5f7fb; }
     .view-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 18px; padding: 4px; background: #e3e8f2; border-radius: 11px; }
@@ -197,7 +197,7 @@
     .section-heading-tools { display: flex; align-items: center; gap: 16px; }
     .section-heading-tools .date-box { display: flex; }
     .section-heading-tools .date-filter > span { color: #70809b; }
-    .section-heading-tools .date-filter input { border: 1px solid #dbe2ee; color: #203867; }
+    .section-heading-tools .date-filter input, .section-heading-tools .date-filter select { border: 1px solid #dbe2ee; color: #203867; }
     h2 { font-family: Arial, sans-serif; font-weight: 700; }
     .section-note { color: #70809b; }
     .metrics { gap: 12px; }
@@ -225,7 +225,7 @@
       .section-heading-tools { display: grid; grid-template-columns: 1fr; align-items: stretch; gap: 10px; }
       .section-heading-tools .section-note { display: none; }
       .shared-week-filter { width: 100%; justify-content: space-between; }
-      .shared-week-filter select, .date-filter input { width: 100%; min-width: 0; }
+      .shared-week-filter select, .date-filter input, .date-filter select { width: 100%; min-width: 0; }
       .date-box { width: 100%; }
       .date-filter { justify-content: space-between; }
       .metrics { grid-template-columns: 1fr 1fr; }
@@ -247,8 +247,9 @@
     .user-week-filter select { width: auto; min-width: 220px; padding: 7px 9px; font: 12px Arial, sans-serif; }
     .shared-week-filter { display: flex; align-items: center; gap: 8px; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
     .shared-week-filter select { width: auto; min-width: 220px; padding: 7px 9px; font: 12px Arial, sans-serif; }
+    .last-update { display: block; margin-top: 5px; color: var(--muted); font: 11px Arial, sans-serif; }
     .data-status { margin: 12px 0 0; color: var(--red); font: 12px Arial, sans-serif; }
-    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .section-heading-tools { align-items: flex-end; gap: 8px; } .section-heading-tools .section-note { display: none; } .section-heading-tools .date-box { display: block; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
+    @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .section-heading-tools { align-items: flex-end; gap: 8px; } .section-heading-tools .section-note { display: none; } .section-heading-tools .date-box { display: block; } .date-filter { justify-content: space-between; } .date-filter input, .date-filter select { width: 145px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
 </head>
 <body>
@@ -281,7 +282,7 @@
       <nav class="view-tabs admin-only" aria-label="Vistas del tablero"><a class="active" href="#metrics-title">Rendimiento</a><a href="#metrics-title">Calidad</a><a href="#history-title">Historial</a><a href="#feedbackTitle">Mi resultado</a></nav>
 
       <section aria-labelledby="metrics-title">
-          <div class="section-heading"><h2 id="metrics-title">Consolidado grupal</h2><div class="section-heading-tools"><span class="section-note">Filtros compartidos</span><label class="shared-week-filter"><span>Semana</span><select id="weekFilter" aria-label="Filtrar tablero por semana"></select></label><div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Último día</strong><label class="date-filter"><span>Día</span><input id="dateFilter" type="date" aria-label="Filtrar tablero por día"></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div></div></div>
+          <div class="section-heading"><div class="section-title-block"><h2 id="metrics-title">Consolidado grupal</h2><span class="last-update" id="lastUpdateLabel">Sin actualizaciones</span></div><div class="section-heading-tools"><span class="section-note">Filtros compartidos</span><label class="shared-week-filter"><span>Semana</span><select id="weekFilter" aria-label="Filtrar tablero por semana"></select></label><div class="date-box"><span>Jornada seleccionada</span><strong id="todayLabel">Último día</strong><label class="date-filter"><span>Día</span><select id="dateFilter" aria-label="Filtrar tablero por día"></select></label><button class="clear-filter" id="clearDateFilter" type="button">Ver todas las fechas</button></div></div></div>
         <div class="metrics">
           <article class="metric metric-safety"><div class="metric-label">Seguridad <span class="metric-icon">✦</span></div><div class="metric-value" id="metricSafety">—</div><div class="metric-target">Objetivo: 0 accidentes</div></article>
           <article class="metric metric-attendance"><div class="metric-label">Presentismo grupal <span class="metric-icon">◷</span></div><div class="metric-value" id="metricAttendance">—</div><div class="metric-target">Promedio automático · objetivo ≥ 97%</div></article>
@@ -613,9 +614,14 @@
       weekFilter.value = weeks.has(selected) ? selected : current.key;
       const selectedInfo = weeks.get(weekFilter.value);
       if (selectedInfo) {
-        dateFilter.min = inputDateValue(selectedInfo.start);
-        dateFilter.max = inputDateValue(selectedInfo.end);
-        if (dateFilter.value && (dateFilter.value < dateFilter.min || dateFilter.value > dateFilter.max)) dateFilter.value = '';
+        const selectedDay = dateFilter.value;
+        const days = Array.from({ length: 7 }, (_, index) => {
+          const day = new Date(selectedInfo.start);
+          day.setDate(selectedInfo.start.getDate() + index);
+          return { value: inputDateValue(day), label: new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: '2-digit', month: '2-digit' }).format(day) };
+        });
+        dateFilter.innerHTML = `<option value="">Todas las jornadas</option>${days.map((day) => `<option value="${day.value}">${day.label}</option>`).join('')}`;
+        dateFilter.value = days.some((day) => day.value === selectedDay) ? selectedDay : '';
       }
     };
     const statusFor = (record) => {
@@ -627,11 +633,13 @@
       const selectedWeekRecords = records.filter((record) => !weekFilter.value || weekInfo(record.date).key === weekFilter.value);
       const latestDate = selectedWeekRecords.reduce((latest, record) => record.date > latest ? record.date : latest, '');
       const selectedDate = dateFilter.value && (!weekFilter.value || weekInfo(dateFilter.value).key === weekFilter.value) ? dateFilter.value : latestDate;
+      const lastUpdateDate = records.reduce((latest, record) => record.date > latest ? record.date : latest, '');
       const selectedDayRecords = records.filter((record) => record.date === selectedDate);
       const groupRecord = selectedDayRecords.find((record) => record.laborType === 'group');
       const summaryRecords = latestByOwner(selectedDayRecords.filter((record) => record.laborType !== 'group' && record.owner));
       const historyRecords = records.filter((record) => !weekFilter.value || weekInfo(record.date).key === weekFilter.value);
       document.getElementById('todayLabel').textContent = selectedDate ? dateLabel.format(new Date(`${selectedDate}T12:00:00`)) : 'Sin registros';
+      document.getElementById('lastUpdateLabel').textContent = lastUpdateDate ? `Última actualización: ${formatDate(lastUpdateDate)}` : 'Sin actualizaciones';
       const latest = summaryRecords[0];
       const dashboardRecord = groupRecord || latest;
       document.getElementById('metricSafety').textContent = dashboardRecord?.safety || '—';
@@ -657,11 +665,7 @@
     const startEdit = (id, records = getRecords()) => { const record = records.find((item) => item.id === id); if (!record) return; editingId = id; Object.entries(record).forEach(([key, value]) => { const field = document.getElementById(key); if (field) field.value = value; }); document.getElementById('submitRecordButton').textContent = 'Guardar cambios'; document.getElementById('cancelEditButton').hidden = false; document.getElementById('formHint').textContent = 'Editando el registro seleccionado.'; form.scrollIntoView({ behavior: 'smooth' }); };
     const resetEdit = () => { editingId = ''; form.reset(); dateInput.value = today.toISOString().slice(0, 10); document.getElementById('submitRecordButton').textContent = 'Publicar registro'; document.getElementById('cancelEditButton').hidden = true; document.getElementById('formHint').textContent = 'Solo tu sesión puede publicar registros.'; };
     const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
-    dateFilter.addEventListener('change', () => {
-      const outsideSelectedWeek = dateFilter.value && (dateFilter.value < dateFilter.min || dateFilter.value > dateFilter.max);
-      if (outsideSelectedWeek) dateFilter.value = '';
-      loadRecords().then(render);
-    });
+    dateFilter.addEventListener('change', () => loadRecords().then(render));
     weekFilter.addEventListener('change', () => loadRecords().then(render));
     clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
     viewTabs.forEach((tab) => tab.addEventListener('click', () => { viewTabs.forEach((item) => item.classList.remove('active')); tab.classList.add('active'); }));
