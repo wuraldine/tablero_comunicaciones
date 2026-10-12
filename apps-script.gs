@@ -132,8 +132,10 @@ function repairExistingRecords() {
     row[2] = canonicalNameFor(row[2]);
     row[13] = row[13] || 'productive';
     row[14] = usernameForName(row[2]);
-    row[15] = (totals.performance / productiveBase).toFixed(2);
-    row[16] = (totals.quality / productiveBase).toFixed(2);
+    if (row[13] !== 'group') {
+      row[15] = (totals.performance / productiveBase).toFixed(2);
+      row[16] = (totals.quality / productiveBase).toFixed(2);
+    }
     return row;
   });
   sheet.getRange(2, 1, repaired.length, HEADERS.length).setValues(repaired);
@@ -213,7 +215,7 @@ function doPost(event) {
   if (!session || session.role !== 'admin') return json({ ok: false, message: 'Sesión no autorizada.' });
   const sheet = getSheet();
   if (payload.action === 'save') {
-    sheet.appendRow(recordValues(payload.record, '', ''));
+    sheet.appendRow(recordValues(payload.record, payload.record.groupPerformance, payload.record.groupQuality));
     return json({ ok: true, id: String(sheet.getLastRow()) });
   }
   else if (payload.action === 'bulkSave') {
