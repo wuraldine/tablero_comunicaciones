@@ -170,7 +170,6 @@ function buildGroupRecords(records) {
   });
   return Object.entries(byDate).map(([date, dateRecords]) => {
     const savedGroup = dateRecords.find((record) => record.laborType === 'group');
-    if (savedGroup) return savedGroup;
     const productiveRecords = dateRecords.filter((record) => record.laborType !== 'attendance' && record.owner);
     const attendanceRecords = dateRecords.filter((record) => Number.isFinite(Number(record.attendance)));
     const productiveBase = USER_NAMES.filter((name) => name !== 'Paola Ferreira').length;
@@ -178,25 +177,26 @@ function buildGroupRecords(records) {
       const total = items.reduce((sum, record) => sum + (Number.isFinite(Number(record[field])) ? Number(record[field]) : 0), 0);
       return denominator ? (total / denominator).toFixed(2) : '';
     };
+    const calculatedPerformance = average(productiveRecords, 'performance', productiveBase);
+    const calculatedQuality = average(productiveRecords, 'quality', productiveBase);
+    const calculatedAttendance = average(attendanceRecords, 'attendance');
     return {
-      id: `group-${date}`,
+      ...(savedGroup || {}),
+      id: savedGroup?.id || `group-${date}`,
       date,
-      team: productiveRecords[0]?.team || dateRecords[0]?.team || '',
+      team: savedGroup?.team || productiveRecords[0]?.team || dateRecords[0]?.team || '',
       owner: '',
-      safety: dateRecords.find((record) => record.safety)?.safety || '',
-      attendance: average(attendanceRecords, 'attendance'),
-      base: dateRecords.find((record) => record.base)?.base || '',
+      safety: savedGroup?.safety || dateRecords.find((record) => record.safety)?.safety || '',
+      attendance: savedGroup?.attendance || calculatedAttendance,
+      base: savedGroup?.base || dateRecords.find((record) => record.base)?.base || '',
       performance: '',
       quality: '',
-      cost: dateRecords.find((record) => record.cost)?.cost || '',
-      motivation: dateRecords.find((record) => record.motivation)?.motivation || '',
-      message: '',
-      cause: '',
-      planAccion: '',
+      cost: savedGroup?.cost || dateRecords.find((record) => record.cost)?.cost || '',
+      motivation: savedGroup?.motivation || dateRecords.find((record) => record.motivation)?.motivation || '',
       laborType: 'group',
       userKey: '',
-      groupPerformance: average(productiveRecords, 'performance', productiveBase),
-      groupQuality: average(productiveRecords, 'quality', productiveBase)
+      groupPerformance: savedGroup?.groupPerformance || calculatedPerformance,
+      groupQuality: savedGroup?.groupQuality || calculatedQuality
     };
   });
 }

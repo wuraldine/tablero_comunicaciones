@@ -213,6 +213,8 @@
     .weekly-result { margin-top: 18px; }
     .weekly-result table { min-width: 680px; }
     .weekly-result .empty { padding: 25px 20px; }
+    .user-week-filter { display: flex; align-items: center; gap: 8px; width: fit-content; margin-bottom: 12px; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
+    .user-week-filter select { width: auto; min-width: 220px; padding: 7px 9px; font: 12px Arial, sans-serif; }
     .data-status { margin: 12px 0 0; color: var(--red); font: 12px Arial, sans-serif; }
     @media (max-width: 760px) { main { padding: 10px 12px 35px; } .topline { padding: 15px; border-radius: 9px; } .topline > div:first-child { padding-right: 0; padding-bottom: 42px; } .top-action { top: auto; right: 15px; bottom: 12px; } .section-heading { margin-top: 24px; } .section-heading-tools { align-items: flex-end; gap: 8px; } .section-heading-tools .section-note { display: none; } .section-heading-tools .date-box { display: block; } .date-filter { justify-content: space-between; } .date-filter input { width: 145px; } .view-tabs a { font-size: 11px; padding: 10px 4px; } }
   </style>
@@ -258,7 +260,7 @@
         </div>
       </section>
       <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
-      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><div class="table-wrap"><table><thead><tr><th>Semana</th><th>Jornadas</th><th>Rendimiento promedio</th><th>Calidad promedio</th><th>Presentismo promedio</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
+      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><label class="user-week-filter">Semana<select id="userWeekFilter" aria-label="Filtrar mi resultado por semana"></select></label><div class="table-wrap"><table><thead><tr><th>Fecha y día</th><th>Rendimiento</th><th>Calidad</th><th>Presentismo</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
 
       <div class="content-grid admin-only">
         <section id="carga" class="panel" style="margin-top: 22px;">
@@ -335,6 +337,7 @@
     const dateFilter = document.getElementById('dateFilter');
     const clearDateFilter = document.getElementById('clearDateFilter');
     const weekFilter = document.getElementById('weekFilter');
+    const userWeekFilter = document.getElementById('userWeekFilter');
     const viewTabs = document.querySelectorAll('.view-tabs a');
     const today = new Date();
     const formatDate = (value) => { const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(parsedDate); };
@@ -550,20 +553,25 @@
     };
     const weekInfo = (value) => { const date = new Date(`${value}T12:00:00`); const start = new Date(date); start.setDate(date.getDate() - date.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); const firstSunday = new Date(start.getFullYear(), 0, 1); firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay()); const number = Math.floor((start - firstSunday) / 604800000) + 1; const key = `${start.getFullYear()}-${String(number).padStart(2, '0')}`; return { key, number, start, end }; };
     const weekLabel = ({ number, start, end }) => `Semana ${number} · ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short' }).format(start)} - ${new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end)}`;
-    const renderWeeklyResult = (records) => {
-      const weeklyResult = document.getElementById('weeklyResult');
-      if (sessionRole !== 'user') return;
+    const dateWithWeekday = (value) => new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
+    const populateUserWeekFilter = (records) => {
       const weeks = new Map();
       records.filter((record) => record.laborType === 'productive' && record.date).forEach((record) => {
         const info = weekInfo(record.date);
-        if (!weeks.has(info.key)) weeks.set(info.key, { info, records: [] });
-        weeks.get(info.key).records.push(record);
+        weeks.set(info.key, info);
       });
-      const rows = [...weeks.values()].sort((first, second) => second.info.start - first.info.start).map(({ info, records: weekRecords }) => {
-        const messages = [...new Set(weekRecords.map((record) => String(record.message || '').trim()).filter(Boolean))].join(' · ');
-        return `<tr><td><strong>${weekLabel(info)}</strong></td><td>${weekRecords.length}</td><td>${Number.isFinite(averageOf(weekRecords, 'performance')) ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(averageOf(weekRecords, 'performance')) : '—'}</td><td>${percentage(averageOf(weekRecords, 'quality'))}</td><td>${percentage(averageOf(weekRecords, 'attendance'))}</td><td>${messages || 'Sin observaciones'}</td></tr>`;
-      }).join('');
-      document.getElementById('weeklyResultBody').innerHTML = rows || '<tr><td class="empty" colspan="6">Todavía no hay resultados semanales para esta sesión.</td></tr>';
+      const current = userWeekFilter.value;
+      userWeekFilter.innerHTML = [...weeks.values()].sort((first, second) => second.start - first.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join('');
+      userWeekFilter.value = weeks.has(current) ? current : (weeks.keys().next().value || '');
+    };
+    const renderWeeklyResult = (records) => {
+      const weeklyResult = document.getElementById('weeklyResult');
+      if (sessionRole !== 'user') return;
+      populateUserWeekFilter(records);
+      const selectedWeek = userWeekFilter.value;
+      const weeklyRecords = records.filter((record) => record.laborType === 'productive' && record.date && weekInfo(record.date).key === selectedWeek).sort((first, second) => second.date.localeCompare(first.date));
+      const rows = weeklyRecords.map((record) => `<tr><td><strong>${dateWithWeekday(record.date)}</strong></td><td>${record.performance || '—'}</td><td>${percentage(record.quality)}</td><td>${percentage(record.attendance)}</td><td>${record.message || 'Sin observaciones'}</td></tr>`).join('');
+      document.getElementById('weeklyResultBody').innerHTML = rows || '<tr><td class="empty" colspan="5">Todavía no hay resultados para esta semana.</td></tr>';
       weeklyResult.hidden = false;
     };
     const populateWeekFilter = (records) => { const weeks = new Map(); records.forEach((record) => { if (record.date) { const info = weekInfo(record.date); weeks.set(info.key, info); } }); const current = weekInfo(today.toISOString().slice(0, 10)); weeks.set(current.key, current); const selected = weekFilter.value || current.key; weekFilter.innerHTML = [...weeks.values()].sort((a, b) => b.start - a.start).map((info) => `<option value="${info.key}">${weekLabel(info)}</option>`).join(''); weekFilter.value = weeks.has(selected) ? selected : current.key; };
@@ -607,6 +615,7 @@
     const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
     dateFilter.addEventListener('change', () => loadRecords().then(render));
     weekFilter.addEventListener('change', () => loadRecords().then(render));
+    userWeekFilter.addEventListener('change', () => render(getRecords()));
     clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
     viewTabs.forEach((tab) => tab.addEventListener('click', () => { viewTabs.forEach((item) => item.classList.remove('active')); tab.classList.add('active'); }));
     const openLogin = (event) => { event.preventDefault(); if (sessionToken) { logoutButton.click(); return; } if (!apiUrl) { loginMessage.textContent = 'La carga está deshabilitada hasta conectar Google Apps Script.'; } adminGate.hidden = false; document.getElementById('loginUsername').focus(); };
