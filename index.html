@@ -93,7 +93,7 @@
     .bulk-settings label { gap: 5px; }
     .bulk-settings input { padding: 8px 9px; font: 13px Arial, sans-serif; }
     .bulk-table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--white); }
-    .bulk-table { min-width: 850px; }
+    .bulk-table { min-width: 980px; }
     .bulk-table th, .bulk-table td { padding: 7px 8px; }
     .bulk-table th { white-space: nowrap; }
     .bulk-table td:first-child { min-width: 170px; font: 13px Arial, sans-serif; font-weight: 700; }
@@ -114,9 +114,10 @@
       .bulk-table td:nth-child(1)::before { content: 'Persona'; display: block; margin-bottom: 3px; }
       .bulk-table td:nth-child(2)::before { content: 'Rendimiento'; }
       .bulk-table td:nth-child(3)::before { content: 'Calidad'; }
-      .bulk-table td:nth-child(4)::before { content: 'Horas trabajadas'; }
-      .bulk-table td:nth-child(5)::before { content: 'Presentismo automático'; }
-      .bulk-table td:nth-child(6)::before { content: 'Observaciones'; }
+      .bulk-table td:nth-child(4)::before { content: 'Bonificación semanal'; }
+      .bulk-table td:nth-child(5)::before { content: 'Horas trabajadas'; }
+      .bulk-table td:nth-child(6)::before { content: 'Presentismo automático'; }
+      .bulk-table td:nth-child(7)::before { content: 'Observaciones'; }
       .bulk-table input, .bulk-table select, .bulk-table input[type="date"] { width: 100%; min-width: 0; }
     }
     .plan-panel { padding-bottom: 19px; }
@@ -220,6 +221,28 @@
     .password-grid input { padding: 9px 10px; font: 14px Arial, sans-serif; }
     .password-message { min-height: 16px; margin: 10px 0 0; color: var(--muted); font: 12px Arial, sans-serif; }
     @media (max-width: 760px) { .password-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) {
+      .section-heading-tools { display: grid; grid-template-columns: 1fr; align-items: stretch; gap: 10px; }
+      .section-heading-tools .section-note { display: none; }
+      .shared-week-filter { width: 100%; justify-content: space-between; }
+      .shared-week-filter select, .date-filter input { width: 100%; min-width: 0; }
+      .date-box { width: 100%; }
+      .date-filter { justify-content: space-between; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric { min-width: 0; }
+      .panel-head { gap: 10px; flex-wrap: wrap; }
+      .form-grid { gap: 12px; }
+      .table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    }
+    @media (max-width: 420px) {
+      main { padding-left: 10px; padding-right: 10px; }
+      .topline { margin-bottom: 12px; }
+      .metrics { grid-template-columns: 1fr; }
+      .metric { min-height: 108px; }
+      .weekly-result table { min-width: 620px; }
+      .shared-week-filter { display: grid; grid-template-columns: 1fr; gap: 5px; }
+      .date-filter { display: grid; grid-template-columns: 1fr; gap: 5px; }
+    }
     .user-week-filter { display: flex; align-items: center; gap: 8px; width: fit-content; margin-bottom: 12px; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
     .user-week-filter select { width: auto; min-width: 220px; padding: 7px 9px; font: 12px Arial, sans-serif; }
     .shared-week-filter { display: flex; align-items: center; gap: 8px; color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: .08em; }
@@ -269,7 +292,7 @@
         </div>
       </section>
       <section class="motivation" aria-live="polite"><div class="motivation-mark">❤️</div><div><div class="motivation-label">Frase del día</div><p class="motivation-text" id="motivationDisplay">Cada jornada es una nueva oportunidad para cosechar buenos resultados.</p></div></section>
-      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><div class="table-wrap"><table><thead><tr><th>Fecha y día</th><th>Rendimiento</th><th>Calidad</th><th>Presentismo</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
+      <section class="feedback-panel" aria-live="polite"><div class="feedback-label">Resultado individual</div><h2 id="feedbackTitle">Iniciá sesión para consultar tu resultado</h2><p id="feedbackText">Tu rendimiento y calidad aparecerán aquí después de iniciar sesión.</p><div class="weekly-result" id="weeklyResult" hidden><div class="table-wrap"><table><thead><tr><th>Fecha y día</th><th>Rendimiento</th><th>Calidad</th><th>Presentismo</th><th id="weeklyBonusHeader" hidden>Bonificación semanal</th><th>Observaciones</th></tr></thead><tbody id="weeklyResultBody"></tbody></table></div></div></section>
       <section class="password-panel" id="passwordPanel" hidden><h3>Modificar mi PIN</h3><form id="passwordForm"><div class="password-grid"><label>PIN actual<input id="currentPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required></label><label>Nuevo PIN<input id="newPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><label>Confirmar PIN<input id="passwordConfirmation" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required></label><button class="primary" type="submit">Guardar PIN</button></div><p class="password-message" id="passwordMessage" role="status"></p></form></section>
 
       <div class="content-grid admin-only">
@@ -299,7 +322,7 @@
               <h4>Carga masiva de información grupal</h4>
               <p>Elegí una fecha. La jornada esperada se calcula automáticamente según el día; solo modifica las horas reales de quienes no cumplieron. Las 4 filas de otras labores cuentan para presentismo, pero no para rendimiento ni calidad.</p>
               <div class="bulk-settings"><label>Fecha de carga<input id="bulkDate" type="date" required></label><label>Jornada esperada<input id="shiftHours" type="text" value="6,25 horas" readonly aria-readonly="true"></label></div>
-              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Horas trabajadas</th><th>Presentismo % automático</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
+              <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>Persona</th><th>Rendimiento</th><th>Calidad %</th><th>Bonificación semanal</th><th>Horas trabajadas</th><th>Presentismo % automático</th><th>Observaciones</th></tr></thead><tbody id="bulkTableBody"></tbody></table></div>
               <div class="bulk-actions"><button class="secondary" id="bulkUploadButton" type="button">Subir tabla</button><span class="hint" id="bulkUploadMessage"></span></div>
             </div>
             <div class="form-actions"><span class="hint" id="formHint">Solo tu sesión puede publicar registros.</span><div><button class="secondary" id="cancelEditButton" type="button" hidden>Cancelar edición</button> <button class="secondary" id="logoutButton" type="button">Cerrar sesión</button> <button class="primary" id="submitRecordButton" type="submit">Publicar registro</button></div></div>
@@ -441,8 +464,8 @@
       document.getElementById('bulkDate').value = today.toISOString().slice(0, 10);
       const scheduledHours = scheduledHoursForDate(document.getElementById('bulkDate').value);
       document.getElementById('shiftHours').value = scheduledHours ? `${scheduledHours.toString().replace('.', ',')} horas` : 'Sin jornada';
-      const productiveRows = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}" data-labor-type="productive"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
-      const otherLaborRows = otherLaborLabels.map((label, index) => `<tr data-bulk-row="other-${index}" data-labor-type="attendance"><td><input data-field="owner" type="text" value="${label}" aria-label="Nombre de otra labor"></td><td><span class="attendance-only-label">Solo presentismo</span></td><td><span class="attendance-only-label">No aplica</span></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      const productiveRows = collaboratorNames.map((name, index) => `<tr data-bulk-row="${index}" data-labor-type="productive"><td>${name}</td><td><input data-field="performance" type="number" min="0" step="0.01" placeholder="1600"></td><td><input data-field="quality" type="number" min="0" max="100" step="0.01" placeholder="92"></td><td><input data-field="bonificacion" type="number" min="0" step="0.01" placeholder="Opcional"></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
+      const otherLaborRows = otherLaborLabels.map((label, index) => `<tr data-bulk-row="other-${index}" data-labor-type="attendance"><td><input data-field="owner" type="text" value="${label}" aria-label="Nombre de otra labor"></td><td><span class="attendance-only-label">Solo presentismo</span></td><td><span class="attendance-only-label">No aplica</span></td><td><span class="attendance-only-label">No aplica</span></td><td><input data-field="attendanceHours" type="number" min="0" max="24" step="0.25" value="${scheduledHours || ''}"></td><td><output class="attendance-result" data-field="attendancePercent">—</output></td><td><input data-field="message" type="text" placeholder="Comentario del día"></td></tr>`).join('');
       document.getElementById('bulkTableBody').innerHTML = `${productiveRows}${otherLaborRows}`;
       updateAllAttendancePercents();
     };
@@ -477,6 +500,7 @@
         const isAttendanceOnly = row.dataset.laborType === 'attendance';
         let performance = isAttendanceOnly ? '' : value('performance');
         let quality = isAttendanceOnly ? '' : value('quality');
+        const bonificacion = isAttendanceOnly ? '' : value('bonificacion');
         const attendanceHours = Number.parseFloat(value('attendanceHours'));
         if (!Number.isFinite(attendanceHours)) return;
         if (attendanceHours === 0) {
@@ -488,7 +512,7 @@
         const attendance = Number.isFinite(attendanceHours) ? Math.min(100, (attendanceHours / shiftHours) * 100).toFixed(2) : '';
         const owner = isAttendanceOnly ? value('owner') : row.firstElementChild.textContent.trim();
         if (!owner) throw new Error('Completá el nombre de cada persona de otras labores.');
-        records.push({ date, team: groupName, owner, safety: '', attendance, base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '', laborType: isAttendanceOnly ? 'attendance' : 'productive' });
+        records.push({ date, team: groupName, owner, safety: '', attendance, base: '', performance, quality, cost: '', motivation: '', message: value('message'), cause: '', planAccion: '', laborType: isAttendanceOnly ? 'attendance' : 'productive', bonificacion });
       });
       if (!records.length) throw new Error('Completá al menos una fila antes de subir la tabla.');
       return records;
@@ -573,8 +597,10 @@
       if (sessionRole !== 'user') return;
       const selectedWeek = weekFilter.value;
       const weeklyRecords = records.filter((record) => record.laborType === 'productive' && record.date && weekInfo(record.date).key === selectedWeek).sort((first, second) => second.date.localeCompare(first.date));
-      const rows = weeklyRecords.map((record) => `<tr><td><strong>${dateWithWeekday(record.date)}</strong></td><td>${record.performance || '—'}</td><td>${percentage(record.quality)}</td><td>${percentage(record.attendance)}</td><td>${record.message || 'Sin observaciones'}</td></tr>`).join('');
-      document.getElementById('weeklyResultBody').innerHTML = rows || '<tr><td class="empty" colspan="5">Todavía no hay resultados para esta semana.</td></tr>';
+      const showBonus = weeklyRecords.some((record) => numeric(record.bonificacion) > 0);
+      document.getElementById('weeklyBonusHeader').hidden = !showBonus;
+      const rows = weeklyRecords.map((record) => `<tr><td><strong>${dateWithWeekday(record.date)}</strong></td><td>${record.performance || '—'}</td><td>${percentage(record.quality)}</td><td>${percentage(record.attendance)}</td>${showBonus ? `<td>${numeric(record.bonificacion) > 0 ? record.bonificacion : '—'}</td>` : ''}<td>${record.message || 'Sin observaciones'}</td></tr>`).join('');
+      document.getElementById('weeklyResultBody').innerHTML = rows || `<tr><td class="empty" colspan="${showBonus ? 6 : 5}">Todavía no hay resultados para esta semana.</td></tr>`;
       weeklyResult.hidden = false;
     };
     const populateWeekFilter = (records) => {
@@ -631,7 +657,11 @@
     const startEdit = (id, records = getRecords()) => { const record = records.find((item) => item.id === id); if (!record) return; editingId = id; Object.entries(record).forEach(([key, value]) => { const field = document.getElementById(key); if (field) field.value = value; }); document.getElementById('submitRecordButton').textContent = 'Guardar cambios'; document.getElementById('cancelEditButton').hidden = false; document.getElementById('formHint').textContent = 'Editando el registro seleccionado.'; form.scrollIntoView({ behavior: 'smooth' }); };
     const resetEdit = () => { editingId = ''; form.reset(); dateInput.value = today.toISOString().slice(0, 10); document.getElementById('submitRecordButton').textContent = 'Publicar registro'; document.getElementById('cancelEditButton').hidden = true; document.getElementById('formHint').textContent = 'Solo tu sesión puede publicar registros.'; };
     const removeRecord = async (id) => { if (!window.confirm('¿Borrar este registro? Esta acción no se puede deshacer.')) return; try { await deleteRecord(id); const records = await loadRecords(); render(records); } catch (error) { loginMessage.textContent = error.message; } };
-    dateFilter.addEventListener('change', () => loadRecords().then(render));
+    dateFilter.addEventListener('change', () => {
+      const outsideSelectedWeek = dateFilter.value && (dateFilter.value < dateFilter.min || dateFilter.value > dateFilter.max);
+      if (outsideSelectedWeek) dateFilter.value = '';
+      loadRecords().then(render);
+    });
     weekFilter.addEventListener('change', () => loadRecords().then(render));
     clearDateFilter.addEventListener('click', () => { dateFilter.value = ''; loadRecords().then(render); });
     viewTabs.forEach((tab) => tab.addEventListener('click', () => { viewTabs.forEach((item) => item.classList.remove('active')); tab.classList.add('active'); }));

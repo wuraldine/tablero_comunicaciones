@@ -1,6 +1,6 @@
 const SHEET_NAME = 'Registros';
 const USERS_SHEET_NAME = 'Usuarios';
-const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message', 'cause', 'planAccion', 'laborType', 'userKey', 'groupPerformance', 'groupQuality'];
+const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'performance', 'quality', 'cost', 'motivation', 'message', 'cause', 'planAccion', 'laborType', 'userKey', 'groupPerformance', 'groupQuality', 'bonificacion'];
 const USER_HEADERS = ['username', 'name', 'passwordHash', 'initialPassword', 'active'];
 const SESSION_TTL_SECONDS = 21600;
 const USER_NAMES = [
