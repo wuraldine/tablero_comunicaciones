@@ -67,6 +67,9 @@ function numericPassword() {
 }
 
 function uniqueUsername(name, used) {
+  const preferredUsernames = { dunermendoza: 'dumendoza', danilsonmendoza: 'damendoza' };
+  const preferredUsername = preferredUsernames[normalize(name).replace(/[^a-z0-9]/g, '')];
+  if (preferredUsername && !used.has(preferredUsername)) return preferredUsername;
   const base = normalize(name).replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
   let username = base;
   let suffix = 2;
@@ -178,6 +181,34 @@ function updateOctober8DunerRecord() {
   const row = recordValues({ date, team: 'Grupo de cosecha de Nay', owner, performance, quality, laborType: 'productive' }, '', '');
   sheet.getRange(sheet.getLastRow() + 1, 1, 1, HEADERS.length).setValues([row]);
   return `Registro de ${owner} creado para ${date}: rendimiento ${performance}, calidad ${quality}.`;
+}
+
+function fixMendozaUsernames() {
+  const usernameByName = { 'Duner Mendoza': 'dumendoza', 'Danilson Mendoza': 'damendoza' };
+  const usersSheet = getUsersSheet();
+  if (usersSheet.getLastRow() < 2) return 'No hay usuarios para corregir.';
+  const userRows = usersSheet.getRange(2, 1, usersSheet.getLastRow() - 1, USER_HEADERS.length).getValues();
+  let usersUpdated = 0;
+  userRows.forEach((row) => {
+    const name = Object.keys(usernameByName).find((candidate) => samePerson(candidate, row[1]));
+    if (name && row[0] !== usernameByName[name]) {
+      row[0] = usernameByName[name];
+      usersUpdated += 1;
+    }
+  });
+  usersSheet.getRange(2, 1, userRows.length, USER_HEADERS.length).setValues(userRows);
+  const recordsSheet = getSheet();
+  const recordRows = recordsSheet.getLastRow() > 1 ? recordsSheet.getRange(2, 1, recordsSheet.getLastRow() - 1, HEADERS.length).getValues() : [];
+  let recordsUpdated = 0;
+  recordRows.forEach((row) => {
+    const name = Object.keys(usernameByName).find((candidate) => samePerson(candidate, row[2]));
+    if (name && row[14] !== usernameByName[name]) {
+      row[14] = usernameByName[name];
+      recordsUpdated += 1;
+    }
+  });
+  if (recordRows.length) recordsSheet.getRange(2, 1, recordRows.length, HEADERS.length).setValues(recordRows);
+  return `Usuarios actualizados: ${usersUpdated}. Registros actualizados: ${recordsUpdated}.`;
 }
 
 function hashPassword(password) {
