@@ -4,10 +4,10 @@ const HEADERS = ['date', 'team', 'owner', 'safety', 'attendance', 'base', 'perfo
 const USER_HEADERS = ['username', 'name', 'passwordHash', 'initialPassword', 'active'];
 const SESSION_TTL_SECONDS = 21600;
 const USER_NAMES = [
-  'Natalia Amariles', 'Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo',
-  'Ronald Cardoza', 'Sebastian Carmona', 'Raul Casadiego','Yeinys Contreras', 'Adriana De Avila', 'Jaiber Galvan', 'Claudia Garcia', 'Carolina Gonzalez', 'Libardo Grisales', 'Mario Hernandez', 'Geraldine Lopez', 'Rodrigo Lopez',
+  'Natalia Amariles', 'Erika Arango', 'Valentina Arango', 'Dayana Argumedo', 'Anyelis Avila', 'Daniela Blanco', 'Ivan Bravo', 'Frainz Cambar',
+  'Ronald Cardoza', 'Sebastian Carmona', 'Raul Casadiego', 'Diana Ciro', 'Yeinys Contreras', 'Adriana De Avila', 'Yudis Florez', 'Pedro Fuentes', 'Jaiber Galvan', 'Claudia Garcia', 'Carolina Gonzalez', 'Libardo Grisales', 'Mario Hernandez', 'Geraldine Lopez', 'Rodrigo Lopez',
   'Yiseth Medina', 'Duner Mendoza', 'Danilson Mendoza', 'Alba Muñoz', 'Fanelis Narvaez', 'Jose Ochoa', 'Sophia Pacheco', 'Margara Piedrahita',
-  'Carolina Sanchez', 'Yurianys Serna', 'Rosa Serna', 'Adelmo Urariyu', 'Ana Utria', 'Yeisly Valladares',
+  'Yurianys Serna', 'Rosa Serna', 'Ana Utria', 'Yeisly Valladares',
   'Vergara Solanyi'
 ];
 
